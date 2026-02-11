@@ -1,0 +1,21 @@
+[
+  {
+    "id": "e03s8zbur",
+    "createdAt": "2026-02-11T04:54:40.360Z",
+    "status": "confirmed",
+    "service": {
+      "id": "corte",
+      "title": "Corte de Cabelo",
+      "price": 50,
+      "duration": "30 min",
+      "type": "service",
+      "active": true
+    },
+    "date": "2026-02-12",
+    "time": "09:30",
+    "client": {
+      "name": "Willian",
+      "phone": "94992276457"
+    }
+  }
+]

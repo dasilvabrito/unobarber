@@ -1,0 +1,42 @@
+[
+  {
+    "id": "corte",
+    "title": "Corte de Cabelo",
+    "price": 50,
+    "duration": "30 min",
+    "type": "service",
+    "active": true
+  },
+  {
+    "id": "barba",
+    "title": "Barba",
+    "price": 35,
+    "duration": "30 min",
+    "type": "service",
+    "active": true
+  },
+  {
+    "id": "combo",
+    "title": "Corte + Barba",
+    "price": 80,
+    "duration": "1h",
+    "type": "combo",
+    "active": true
+  },
+  {
+    "id": "sobrancelha",
+    "title": "Sobrancelha",
+    "price": 20,
+    "duration": "15 min",
+    "type": "service",
+    "active": true
+  },
+  {
+    "id": "pezinho",
+    "title": "Pezinho",
+    "price": 15,
+    "duration": "15 min",
+    "type": "service",
+    "active": true
+  }
+]

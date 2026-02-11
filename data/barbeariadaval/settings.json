@@ -1,0 +1,62 @@
+{
+  "startHour": "09:00",
+  "endHour": "19:00",
+  "salonName": "Barbearia da Val",
+  "slogan": "Corte Justo",
+  "slug": "barbeariadaval",
+  "logoUrl": "/uploads/barbeariadaval/logo-1770849936258.jpeg",
+  "address": "Rua Exemplo, 123 - Centro",
+  "googleMapsUrl": "",
+  "socialMedia": {
+    "whatsapp": "94992276457"
+  },
+  "license": {
+    "active": true,
+    "expirationDate": "2026-03-11",
+    "plan": "trial"
+  },
+  "usage": {
+    "appointments": 8
+  },
+  "weeklySchedule": {
+    "0": {
+      "active": false,
+      "start": "09:00",
+      "end": "19:00"
+    },
+    "1": {
+      "active": true,
+      "start": "09:00",
+      "end": "18:00"
+    },
+    "2": {
+      "active": true,
+      "start": "09:00",
+      "end": "18:00"
+    },
+    "3": {
+      "active": true,
+      "start": "09:00",
+      "end": "18:00"
+    },
+    "4": {
+      "active": true,
+      "start": "09:00",
+      "end": "18:00"
+    },
+    "5": {
+      "active": true,
+      "start": "09:00",
+      "end": "18:00"
+    },
+    "6": {
+      "active": true,
+      "start": "09:00",
+      "end": "12:00"
+    }
+  },
+  "lunchActive": true,
+  "lunchStart": "12:00",
+  "lunchEnd": "13:00",
+  "currentTheme": "cyber-neon"
+}

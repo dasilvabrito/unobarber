@@ -1,0 +1,180 @@
+[
+  {
+    "id": "3w6tpiahp",
+    "createdAt": "2026-02-11T11:49:29.922Z",
+    "status": "completed",
+    "service": {
+      "id": "combo",
+      "title": "Corte + Barba",
+      "price": 80,
+      "duration": "1h",
+      "type": "combo",
+      "active": true
+    },
+    "date": "2026-02-12",
+    "time": "10:00",
+    "client": {
+      "name": "Willian Isaac",
+      "phone": "94991892010"
+    },
+    "followUp": {
+      "scheduledDate": "2026-02-11",
+      "days": 30,
+      "sent": false
+    }
+  },
+  {
+    "id": "hxmgywhl9",
+    "createdAt": "2026-02-11T11:52:29.688Z",
+    "status": "completed",
+    "service": {
+      "id": "combo",
+      "title": "Corte + Barba",
+      "price": 80,
+      "duration": "1h",
+      "type": "combo",
+      "active": true
+    },
+    "date": "2026-02-13",
+    "time": "10:00",
+    "client": {
+      "name": "Júnior",
+      "phone": "9499999999"
+    },
+    "followUp": {
+      "scheduledDate": "2026-03-08",
+      "days": 25,
+      "sent": false
+    }
+  },
+  {
+    "id": "9834ejhwx",
+    "createdAt": "2026-02-11T12:16:36.086Z",
+    "status": "confirmed",
+    "service": {
+      "id": "combo",
+      "title": "Corte + Barba",
+      "price": 80,
+      "duration": "1h",
+      "type": "combo",
+      "active": true
+    },
+    "date": "2026-02-13",
+    "time": "11:00",
+    "client": {
+      "name": "Willian",
+      "phone": "(94) 99227-6457"
+    }
+  },
+  {
+    "id": "1slf8jia2",
+    "createdAt": "2026-02-11T17:10:11.959Z",
+    "status": "cancelled",
+    "professionalId": "pbvpccite",
+    "professionalName": "Rafael",
+    "service": {
+      "id": "barba",
+      "title": "Barba",
+      "price": 35,
+      "duration": "30 min",
+      "type": "service",
+      "active": true
+    },
+    "date": "2026-02-13",
+    "time": "10:00",
+    "client": {
+      "name": "Teste",
+      "phone": "(94) 99221-6471"
+    }
+  },
+  {
+    "id": "o8ggjiz3z",
+    "createdAt": "2026-02-11T17:14:09.450Z",
+    "status": "confirmed",
+    "professionalId": "67eh7jxtn",
+    "professionalName": "Julio",
+    "service": {
+      "id": "combo",
+      "title": "Corte + Barba",
+      "price": 80,
+      "duration": "1h",
+      "type": "combo",
+      "active": true
+    },
+    "date": "2026-02-13",
+    "time": "09:30",
+    "client": {
+      "name": "pedro",
+      "phone": "(94) 99999-9999"
+    }
+  },
+  {
+    "id": "t4gocueg8",
+    "createdAt": "2026-02-11T17:21:18.661Z",
+    "status": "confirmed",
+    "professionalId": "any",
+    "professionalName": "Qualquer Profissional",
+    "service": {
+      "id": "combo",
+      "title": "Corte + Barba",
+      "price": 80,
+      "duration": "1h",
+      "type": "combo",
+      "active": true
+    },
+    "date": "2026-02-13",
+    "time": "10:00",
+    "client": {
+      "name": "Teste",
+      "phone": "(94) 99999-9999"
+    }
+  },
+  {
+    "id": "9js34vh78",
+    "createdAt": "2026-02-11T21:58:01.402Z",
+    "status": "confirmed",
+    "professionalId": "67eh7jxtn",
+    "professionalName": "Julio",
+    "service": {
+      "id": "combo",
+      "title": "Corte + Barba",
+      "price": 80,
+      "duration": "1h",
+      "type": "combo",
+      "active": true,
+      "allowedProfessionals": [
+        "67eh7jxtn"
+      ]
+    },
+    "date": "2026-02-13",
+    "time": "11:00",
+    "client": {
+      "name": "Júlio",
+      "phone": "(94) 99137-9562"
+    }
+  },
+  {
+    "id": "jy0n04eh5",
+    "createdAt": "2026-02-11T22:02:32.656Z",
+    "status": "confirmed",
+    "professionalId": "any",
+    "professionalName": "Qualquer Profissional",
+    "service": {
+      "id": "corte",
+      "title": "Corte de Cabelo",
+      "price": 50,
+      "duration": "30 min",
+      "type": "service",
+      "active": true,
+      "allowedProfessionals": [
+        "67eh7jxtn"
+      ]
+    },
+    "date": "2026-02-13",
+    "time": "10:30",
+    "client": {
+      "name": "Júlio",
+      "phone": "(94) 99137-9562"
+    }
+  }
+]

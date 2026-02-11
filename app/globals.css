@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme {
+  --color-salon-gold: var(--salon-gold);
+  --color-salon-brown: var(--salon-brown);
+  --color-salon-beige: var(--salon-beige);
+  --color-salon-stone: var(--salon-stone);
+  --color-salon-black: var(--salon-black);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  /* Default Theme (Classic Gold) */
+  --salon-gold: #FDDAB2;
+  --salon-brown: #4B3829;
+  --salon-beige: #CABCAF;
+  --salon-stone: #A79F94;
+  --salon-black: #1D140D;
+
+  --background: var(--salon-black);
+  --foreground: var(--salon-gold);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}

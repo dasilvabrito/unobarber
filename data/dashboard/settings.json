@@ -1,0 +1,55 @@
+{
+  "startHour": "09:00",
+  "endHour": "19:00",
+  "salonName": "Julio Studio",
+  "slug": "barber-juliostudio",
+  "logoUrl": "/logo.jpg",
+  "address": "Av. Gov. Magalhães Barata, 3592, centro",
+  "googleMapsUrl": "https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d987.0864639141098!2d-49.26628768825831!3d-8.268331956341443!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1spt-BR!2sbr!4v1770777992512!5m2!1spt-BR!2sbr",
+  "socialMedia": {
+    "facebook": "",
+    "instagram": "",
+    "whatsapp": ""
+  },
+  "weeklySchedule": {
+    "0": {
+      "active": false,
+      "start": "09:00",
+      "end": "19:00"
+    },
+    "1": {
+      "active": true,
+      "start": "09:00",
+      "end": "19:00"
+    },
+    "2": {
+      "active": true,
+      "start": "09:00",
+      "end": "19:00"
+    },
+    "3": {
+      "active": true,
+      "start": "09:00",
+      "end": "19:00"
+    },
+    "4": {
+      "active": true,
+      "start": "09:00",
+      "end": "19:00"
+    },
+    "5": {
+      "active": true,
+      "start": "09:00",
+      "end": "19:00"
+    },
+    "6": {
+      "active": true,
+      "start": "09:00",
+      "end": "12:00"
+    }
+  },
+  "lunchActive": true,
+  "lunchStart": "12:00",
+  "lunchEnd": "13:00",
+  "currentTheme": "ocean-breeze"
+}

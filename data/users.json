@@ -1,0 +1,40 @@
+[
+  {
+    "id": "admin-demo",
+    "email": "admin@demo.com",
+    "password": "$2b$10$cJwu4u4xYSVWrKkvZbVFLOrP1tvJ71YGBX7fdbF99kleR9ciB9OIm",
+    "name": "Admin Demo",
+    "role": "admin",
+    "slug": "demo-barber"
+  },
+  {
+    "id": "63imp9scv",
+    "email": "dasilvabrito@gmail.com",
+    "password": "$2b$10$08rx48zjs81t9P383yDBxesa6Sz3QgJ0d4QeqgztTSY/pH9uScV2W",
+    "name": "Barber Shop Top",
+    "slug": "barbershoptop",
+    "phone": "94992276457",
+    "role": "admin",
+    "createdAt": "2026-02-11T04:44:49.590Z"
+  },
+  {
+    "id": "ykgehgkpl",
+    "email": "demo@demo.com",
+    "password": "$2b$10$yWrr7YHZuIKKIprvbbH8Z.Nmq28HvJntj3ORtxcsYHKs.FNZ9dqli",
+    "name": "Barbearia da Val",
+    "slug": "barbeariadaval",
+    "phone": "94992276457",
+    "role": "admin",
+    "createdAt": "2026-02-11T11:48:06.978Z"
+  },
+  {
+    "id": "16jgwjx5u",
+    "email": "demo@demo1.com",
+    "password": "$2b$10$f/8r1yD19LKmMozb16Ywte5MtidPmJdprD68oETel2wh9HDljSKuy",
+    "name": "Barbearia da Val",
+    "slug": "barbearia-da-val",
+    "phone": "94992276457",
+    "role": "admin",
+    "createdAt": "2026-02-11T11:56:37.728Z"
+  }
+]

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "67eh7jxtn",
+    "createdAt": "2026-02-11T17:08:49.827Z",
+    "active": true,
+    "name": "Julio",
+    "specialty": "Primeiro Corte Infantil e Corte Adulto",
+    "bio": ""
+  },
+  {
+    "id": "pbvpccite",
+    "createdAt": "2026-02-11T17:09:00.431Z",
+    "active": true,
+    "name": "Rafael",
+    "specialty": "Corte e Barba",
+    "bio": ""
+  }
+]
