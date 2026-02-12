@@ -446,3 +446,37 @@ export async function validateLicense(slug: string) {
 
     return { valid: true, plan: license.plan, reason: 'active' };
 }
+
+// --- SUPER ADMIN ---
+export async function getTenants() {
+    const { data: tenants, error } = await supabase.from('tenants').select('*').order('created_at', { ascending: false });
+    if (error) return [];
+
+    // Enrich with booking counts
+    const enriched = await Promise.all(tenants.map(async (t) => {
+        const { count } = await supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('tenant_slug', t.slug);
+        const { data: user } = await supabase.from('users').select('name, email, phone').eq('slug', t.slug).single();
+        return {
+            ...t,
+            bookingsCount: count || 0,
+            owner: user || { name: 'Desconhecido', email: '-', phone: '-' }
+        };
+    }));
+    return enriched;
+}
+
+export async function updateTenantStatus(slug: string, active: boolean) {
+    const { data: tenant } = await supabase.from('tenants').select('settings').eq('slug', slug).single();
+    if (!tenant) return { success: false };
+
+    const newSettings = {
+        ...tenant.settings,
+        license: {
+            ...tenant.settings.license,
+            active: active
+        }
+    };
+
+    await supabase.from('tenants').update({ settings: newSettings }).eq('slug', slug);
+    return { success: true };
+}
