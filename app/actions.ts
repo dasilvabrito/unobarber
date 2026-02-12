@@ -421,7 +421,7 @@ export async function validateLicense(slug: string) {
             .eq('tenant_slug', slug)
             .neq('status', 'cancelled');
 
-        if (count && count >= 30) {
+        if (count !== null && count >= 0) { // SIMULATION MODE: 0 instead of 30
             return { valid: false, plan: 'starter', reason: 'limit_reached' };
         }
     }
