@@ -16,7 +16,15 @@ export async function getServices(slug: string) {
         console.error('Error fetching services:', error);
         return [];
     }
-    return data || [];
+    if (error) {
+        console.error('Error fetching services:', error);
+        return [];
+    }
+    return (data || []).map((s: any) => ({
+        ...s,
+        discountPrice: s.discount_price,
+        allowedProfessionals: s.allowed_professionals
+    }));
 }
 
 interface Service {
@@ -182,7 +190,7 @@ export async function saveBooking(slug: string, bookingData: any) {
 
     if (error) {
         console.error('Error saving booking:', error);
-        return { success: false, message: 'Erro ao salvar agendamento.' };
+        return { success: false, message: `Erro ao salvar agendamento: ${error.message}` };
     }
 
     revalidatePath(`/${slug}/admin`);
