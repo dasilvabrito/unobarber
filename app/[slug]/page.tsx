@@ -71,5 +71,7 @@ export default async function Home({ params }: { params: Promise<{ slug: string 
             )}
           </div>
         </div>
-        );
+      </div>
+    </main>
+  );
 }
