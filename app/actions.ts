@@ -61,7 +61,7 @@ export async function saveService(slug: string, service: Service) {
 
     if (error) {
         console.error('Error saving service:', error);
-        return { success: false, message: 'Failed to save service' };
+        return { success: false, message: `Failed to save service: ${error.message}` };
     }
     return { success: true, message: 'Service saved successfully' };
 }
@@ -256,7 +256,7 @@ export async function saveProfessional(slug: string, professional: any) {
         error = insertError;
     }
 
-    if (error) return { success: false, message: "Erro ao salvar profissional." };
+    if (error) return { success: false, message: `Erro ao salvar profissional: ${error.message}` };
     return { success: true, message: "Profissional salvo!" };
 }
 

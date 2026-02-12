@@ -24,7 +24,7 @@ export default async function AdminLayout({
     return (
         <div className="min-h-screen bg-salon-black text-white">
             <header className="bg-salon-black border-b border-salon-gold/20 p-4 sticky top-0 z-50 backdrop-blur-md">
-                <div className="bg-red-500 text-white text-xs p-1 text-center font-bold">MODE DEBUG: {slug} | Valid: {license.valid ? 'YES' : 'NO'} | Reason: {license.reason}</div>
+
                 <div className="container mx-auto flex justify-between items-center">
                     <h1 className="text-xl font-bold text-salon-gold">Painel Administrativo</h1>
                     <div className="flex gap-4 items-center">
