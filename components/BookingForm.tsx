@@ -82,15 +82,43 @@ export default function BookingForm({ slug }: { slug: string }) {
         }
     };
 
+    const getAvailablePros = () => {
+        const service = services.find(s => s.id === selectedService);
+        if (!service) return [];
+        // If service has no specific pros (or array empty), ALL pros are filtered
+        if (!service.allowedProfessionals || service.allowedProfessionals.length === 0) return professionals;
+        return professionals.filter(p => service.allowedProfessionals.includes(p.id));
+    };
+
     const handleNext = () => {
         if (currentStep < steps.length - 1) {
-            setCurrentStep(currentStep + 1);
+            let nextStep = currentStep + 1;
+
+            // SKIP PROFESSIONAL STEP IF ONLY 1 PRO AVAILABLE
+            if (currentStep === 0) {
+                const availablePros = getAvailablePros();
+                if (availablePros.length === 1) {
+                    setSelectedProfessional(availablePros[0].id);
+                    nextStep = 2; // Jump to Date
+                }
+            }
+
+            setCurrentStep(nextStep);
         }
     };
 
     const handleBack = () => {
         if (currentStep > 0) {
-            setCurrentStep(currentStep - 1);
+            let prevStep = currentStep - 1;
+
+            // IF BACK FROM DATE (Step 2) AND ONLY 1 PRO, SKIP BACK TO SERVICE (Step 0)
+            if (currentStep === 2) {
+                const availablePros = getAvailablePros();
+                if (availablePros.length === 1) {
+                    prevStep = 0;
+                }
+            }
+            setCurrentStep(prevStep);
         }
     };
 
