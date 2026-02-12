@@ -25,9 +25,6 @@ export default async function Home({ params }: { params: Promise<{ slug: string 
             </h1>
           )}
 
-          <p className="text-salon-stone max-w-2xl mx-auto text-lg">
-            {settings.slogan || "Escolha o serviço, o dia e o horário que melhor se adaptam à sua rotina."}
-          </p>
         </div>
 
         <BookingForm slug={slug} />

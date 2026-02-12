@@ -376,7 +376,7 @@ END:VCALENDAR`;
                         <h3 className="text-xl font-bold text-white mb-4">Escolha um Profissional</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div
-                                onClick={() => setSelectedProfessional('any')}
+                                onClick={() => { setSelectedProfessional('any'); setTimeout(() => setCurrentStep(2), 100); }}
                                 className={`p-4 rounded-xl border cursor-pointer transition-all flex items-center gap-4 active:bg-salon-brown/20 ${selectedProfessional === 'any' ? 'bg-salon-gold/20 border-salon-gold' : 'border-salon-brown/50 hover:border-salon-gold/50'}`}
                             >
                                 <div className="w-12 h-12 rounded-full bg-salon-gold/20 flex items-center justify-center text-salon-gold font-bold text-xl">
@@ -395,7 +395,7 @@ END:VCALENDAR`;
                             }).map((pro) => (
                                 <div
                                     key={pro.id}
-                                    onClick={() => setSelectedProfessional(pro.id)}
+                                    onClick={() => { setSelectedProfessional(pro.id); setTimeout(() => setCurrentStep(2), 100); }}
                                     className={`p-4 rounded-xl border cursor-pointer transition-all flex items-center gap-4 active:bg-salon-brown/20 ${selectedProfessional === pro.id ? 'bg-salon-gold/20 border-salon-gold' : 'border-salon-brown/50 hover:border-salon-gold/50'}`}
                                 >
                                     <div className="w-12 h-12 rounded-full bg-salon-stone/20 flex items-center justify-center text-salon-gold font-bold text-xl">
@@ -429,7 +429,7 @@ END:VCALENDAR`;
                                     <button
                                         key={i}
                                         disabled={isClosed}
-                                        onClick={() => setSelectedDate(dateStr)}
+                                        onClick={() => { setSelectedDate(dateStr); setTimeout(() => setCurrentStep(3), 100); }}
                                         className={`p-2 py-4 md:p-3 rounded-lg border text-center transition-all relative overflow-hidden min-h-[80px] flex flex-col justify-center items-center ${isSelected ? 'bg-salon-gold text-salon-black border-salon-gold shadow-[0_0_15px_rgba(253,218,178,0.4)]' : 'border-salon-brown hover:border-salon-gold text-salon-stone'} ${isClosed ? 'opacity-30 cursor-not-allowed' : 'active:scale-95'}`}
                                     >
                                         {!isSelected && !isClosed && occupancy > 0 && (
@@ -467,7 +467,7 @@ END:VCALENDAR`;
                                 {availableSlots.map((time, i) => (
                                     <button
                                         key={i}
-                                        onClick={() => setSelectedTime(time)}
+                                        onClick={() => { setSelectedTime(time); setTimeout(() => setCurrentStep(4), 100); }}
                                         className={`py-3 px-2 rounded-lg border transition-all font-semibold ${selectedTime === time ? 'bg-salon-gold text-salon-black border-salon-gold shadow-lg' : 'border-salon-brown hover:border-salon-gold text-salon-stone active:bg-salon-brown/20'}`}
                                     >
                                         {time}
@@ -523,22 +523,14 @@ END:VCALENDAR`;
                     Voltar
                 </button>
 
-                {currentStep < steps.length - 1 ? (
-                    <button
-                        onClick={handleNext}
-                        disabled={!isStepValid()}
-                        className={`flex-1 ml-4 md:flex-none px-6 py-3 rounded-lg font-bold transition-all shadow-lg ${!isStepValid() ? 'bg-salon-stone/20 text-salon-stone cursor-not-allowed' : 'bg-salon-gold text-salon-black hover:bg-white active:scale-95'}`}
-                    >
-                        Próximo
-                    </button>
                 ) : (
-                    <button
-                        onClick={handleSubmit}
-                        disabled={!isStepValid()}
-                        className={`flex-1 ml-4 md:flex-none px-6 py-3 rounded-lg font-bold transition-all shadow-lg ${!isStepValid() ? 'bg-salon-stone/20 text-salon-stone cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-500 shadow-green-900/20 active:scale-95'}`}
-                    >
-                        Confirmar
-                    </button>
+                <button
+                    onClick={handleSubmit}
+                    disabled={!isStepValid()}
+                    className={`flex-1 ml-4 md:flex-none px-6 py-3 rounded-lg font-bold transition-all shadow-lg ${!isStepValid() ? 'bg-salon-stone/20 text-salon-stone cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-500 shadow-green-900/20 active:scale-95'}`}
+                >
+                    Confirmar
+                </button>
                 )}
             </div>
         </div>
