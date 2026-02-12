@@ -30,20 +30,20 @@ export default function Header({ slug }: { slug: string }) {
   return (
     <header className="fixed top-0 w-full z-50 bg-salon-black/90 backdrop-blur-md border-b border-salon-brown/50 transition-all duration-300">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href={baseUrl} className="flex items-center gap-2 group">
-          <div className="relative overflow-hidden rounded-md border border-salon-gold/20 group-hover:border-salon-gold/50 transition-colors">
-            {logoUrl ? (
+        {logoUrl ? (
+          <Link href={baseUrl} className="flex items-center gap-2 group">
+            <div className="relative overflow-hidden rounded-md border border-salon-gold/20 group-hover:border-salon-gold/50 transition-colors">
               <img
                 src={logoUrl}
                 alt="Logo da Barbearia"
                 className="h-12 w-auto object-contain"
                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
               />
-            ) : (
-              <span className="text-xl font-bold text-salon-gold px-2">Sua Barbearia</span>
-            )}
-          </div>
-        </Link>
+            </div>
+          </Link>
+        ) : (
+          <div /> /* Spacer or Empty to keep layout if needed, or just nothing */
+        )}
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
