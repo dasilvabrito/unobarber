@@ -196,11 +196,11 @@ END:VCALENDAR`;
         return true;
     };
 
-    // Generate next 30 days
+    // Generate next 7 days
     const getNextDays = () => {
         const days = [];
         const today = new Date();
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 7; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() + i);
             days.push(d);
@@ -268,18 +268,32 @@ END:VCALENDAR`;
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-8 bg-salon-black/50 backdrop-blur-md rounded-2xl border border-salon-brown/30 shadow-2xl">
             {/* Progress Bar */}
-            <div className="flex space-x-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
-                {steps.map((step, index) => (
-                    <div key={index} className={`flex items-center flex-shrink-0 ${index <= currentStep ? 'text-salon-gold' : 'text-salon-stone/50'}`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 mr-2 text-sm font-bold ${index <= currentStep ? 'border-salon-gold bg-salon-gold/10' : 'border-salon-stone/50'}`}>
-                            {index + 1}
+            <div className="flex space-x-2 mb-8 overflow-x-auto pb-2 scrollbar-hide justify-center">
+                {(() => {
+                    const singlePro = professionals.length === 1;
+                    const visibleSteps = singlePro ? steps.filter(s => s !== 'Profissional') : steps;
+
+                    const getVisualStepIndex = (logicalStep: number) => {
+                        if (!singlePro) return logicalStep;
+                        if (logicalStep === 0) return 0; // Service
+                        if (logicalStep === 1) return 0; // Pro (hidden, map to Service)
+                        return logicalStep - 1; // 2(Date)->1, 3(Time)->2, 4(Confirm)->3
+                    };
+
+                    const currentVisualStep = getVisualStepIndex(currentStep);
+
+                    return visibleSteps.map((step, index) => (
+                        <div key={index} className={`flex items-center flex-shrink-0 ${index <= currentVisualStep ? 'text-salon-gold' : 'text-salon-stone/50'}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 mr-2 text-sm font-bold ${index <= currentVisualStep ? 'border-salon-gold bg-salon-gold/10' : 'border-salon-stone/50'}`}>
+                                {index + 1}
+                            </div>
+                            <span className="font-semibold text-sm hidden md:inline">{step}</span>
+                            {index < visibleSteps.length - 1 && (
+                                <div className={`h-0.5 w-4 md:w-12 mx-1 md:mx-2 ${index < currentVisualStep ? 'bg-salon-gold' : 'bg-salon-stone/20'}`}></div>
+                            )}
                         </div>
-                        <span className="font-semibold text-sm hidden md:inline">{step}</span>
-                        {index < steps.length - 1 && (
-                            <div className={`h-0.5 w-4 md:w-12 mx-1 md:mx-2 ${index < currentStep ? 'bg-salon-gold' : 'bg-salon-stone/20'}`}></div>
-                        )}
-                    </div>
-                ))}
+                    ));
+                })()}
             </div>
 
             <div className="mb-8 min-h-[400px]">
