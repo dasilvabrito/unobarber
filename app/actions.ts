@@ -409,7 +409,23 @@ export async function renewLicense(slug: string, months: number = 1) {
 // Required for layout.tsx authentication/license check
 export async function validateLicense(slug: string) {
     const { data: tenant } = await supabase.from('tenants').select('settings').eq('slug', slug).single();
-    if (!tenant) return { valid: false, reason: 'not_found' };
+
+    if (!tenant) {
+        // LAZY INIT: Create default tenant for existing users
+        const defaultSettings = {
+            slug,
+            license: { active: true, plan: 'starter' },
+            ...DEFAULT_SETTINGS
+        };
+        const { error } = await supabase.from('tenants').insert([{ slug, settings: defaultSettings }]);
+
+        if (error) {
+            console.error("Error creating default tenant:", error);
+            return { valid: false, reason: 'error' };
+        }
+
+        return { valid: true, plan: 'starter', reason: 'active' };
+    }
 
     const license = tenant.settings?.license || { active: true, plan: 'starter' };
 
