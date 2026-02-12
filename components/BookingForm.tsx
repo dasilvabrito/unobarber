@@ -302,7 +302,42 @@ END:VCALENDAR`;
                         {services.map((service) => (
                             <div
                                 key={service.id}
-                                onClick={() => setSelectedService(service.id)}
+                                onClick={() => {
+                                    setSelectedService(service.id);
+                                    // Use setTimeout to ensure state update or just call logic directly. 
+                                    // Better to call logic directly but we depend on state.
+                                    // Workaround: We will manually trigger next step logic here.
+
+                                    // Logic usually in handleNext for step 0:
+                                    // Check if single pro -> skip to step 2
+                                    // Else -> step 1
+
+                                    // We need to wait for state to update? No, we can just pass the service ID to a helper or just rely on effect?
+                                    // Simplest: Set timeout to allow visual feedback then next.
+                                    setTimeout(() => {
+                                        // We need to access the LATEST state of selectedService which might not be updated yet in closure.
+                                        // So we pass the service.id directly to logic.
+
+                                        let nextStep = 1;
+
+                                        // CHECK PROS FOR THIS SERVICE
+                                        let hasSinglePro = false;
+                                        if (!service.allowedProfessionals || service.allowedProfessionals.length === 0) {
+                                            hasSinglePro = professionals.length === 1;
+                                            if (hasSinglePro) setSelectedProfessional(professionals[0].id);
+                                        } else {
+                                            const filtered = professionals.filter(p => service.allowedProfessionals.includes(p.id));
+                                            hasSinglePro = filtered.length === 1;
+                                            if (hasSinglePro) setSelectedProfessional(filtered[0].id);
+                                        }
+
+                                        if (hasSinglePro) {
+                                            nextStep = 2;
+                                        }
+
+                                        setCurrentStep(nextStep);
+                                    }, 100);
+                                }}
                                 className={`p-4 rounded-xl border cursor-pointer transition-all active:scale-[0.98] md:hover:scale-[1.02] ${selectedService === service.id ? 'border-salon-gold bg-salon-gold/20' : 'border-salon-brown/50 hover:border-salon-gold/50'}`}
                             >
                                 <div className="flex justify-between mb-2">
