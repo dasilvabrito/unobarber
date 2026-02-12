@@ -102,7 +102,7 @@ export async function register(formData: FormData) {
 
     if (createError || !createdUser) {
         console.error("Error creating user:", createError);
-        return { success: false, message: 'Erro ao criar usuário no banco de dados.' };
+        return { success: false, message: `Erro ao criar usuário: ${createError?.message || 'Erro desconhecido'} (Code: ${createError?.code})` };
     }
 
     // 4. Initialize Tenant Data (Settings & Services)
