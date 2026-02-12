@@ -54,10 +54,10 @@ export default function UpgradePage() {
                                 // We probably need to pass the slug as a search param? ?slug=...
                                 // Let's use searchParams.
                                 const params = new URLSearchParams(window.location.search);
-                                const slug = params.get('slug');
+                                const slug = params.get('slug'); // Get slug from URL ?slug=...
 
                                 if (!slug) {
-                                    alert("Erro: Barbearia não identificada.");
+                                    alert("Erro: Barbearia não identificada. (Falta ?slug= na URL)");
                                     return;
                                 }
 

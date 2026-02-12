@@ -186,21 +186,9 @@ export async function saveBooking(slug: string, bookingData: any) {
         status: 'confirmed'
     };
 
-    // CHECK PLAN LIMITS
-    const { data: tenant } = await supabase.from('tenants').select('settings').eq('slug', slug).single();
-    const plan = tenant?.settings?.license?.plan || 'starter';
+    // CHECK PLAN LIMITS - REMOVED: Clients can ALWAYS schedule.
+    // The block happens on the ADMIN side (layout.tsx) via validateLicense.
 
-    if (plan === 'starter') {
-        const { count } = await supabase
-            .from('bookings')
-            .select('*', { count: 'exact', head: true })
-            .eq('tenant_slug', slug)
-            .neq('status', 'cancelled'); // Count valid bookings only
-
-        if (count && count >= 30) {
-            return { success: false, message: 'Limite do plano gratuito atingido (30 agendamentos). Atualize para o PRO para continuar.' };
-        }
-    }
 
     const { error } = await supabase.from('bookings').insert([newBooking]);
 
@@ -420,5 +408,25 @@ export async function renewLicense(slug: string, months: number = 1) {
 
 // Required for layout.tsx authentication/license check
 export async function validateLicense(slug: string) {
-    return { valid: true, plan: 'pro', reason: 'active' };
+    const { data: tenant } = await supabase.from('tenants').select('settings').eq('slug', slug).single();
+    if (!tenant) return { valid: false, reason: 'not_found' };
+
+    const license = tenant.settings?.license || { active: true, plan: 'starter' };
+
+    // Check Limits for Starter Plan
+    if (license.plan === 'starter') {
+        const { count } = await supabase
+            .from('bookings')
+            .select('*', { count: 'exact', head: true })
+            .eq('tenant_slug', slug)
+            .neq('status', 'cancelled');
+
+        if (count && count >= 30) {
+            return { valid: false, plan: 'starter', reason: 'limit_reached' };
+        }
+    }
+
+    if (!license.active) return { valid: false, reason: 'expired' };
+
+    return { valid: true, plan: license.plan, reason: 'active' };
 }
