@@ -41,6 +41,25 @@ export default function SuperAdminPage() {
         }
     };
 
+    const handleDelete = async (slug: string) => {
+        if (!confirm(`TEM CERTEZA? Isso excluirá TODOS os dados de ${slug} (agendamentos, serviços, usuário). Essa ação é irreversível.`)) return;
+
+        const confirm2 = prompt(`Digite "${slug}" para confirmar a exclusão:`);
+        if (confirm2 !== slug) {
+            alert("Exclusão cancelada (nome incorreto).");
+            return;
+        }
+
+        try {
+            const { deleteTenant } = await import('@/app/actions');
+            await deleteTenant(slug);
+            alert("Cliente excluído com sucesso.");
+            fetchTenants();
+        } catch (error) {
+            alert("Erro ao excluir.");
+        }
+    };
+
     if (!auth) {
         return (
             <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
