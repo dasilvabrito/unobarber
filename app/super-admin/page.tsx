@@ -10,7 +10,7 @@ export default function SuperAdminPage() {
 
     useEffect(() => {
         const storedKey = localStorage.getItem('saas_admin_key');
-        if (storedKey === 'ADMIN123') { // Simple protection
+        if (storedKey === '@Valdiceia1') { // Simple protection
             setAuth(true);
             fetchTenants();
         }
@@ -74,7 +74,7 @@ export default function SuperAdminPage() {
                     />
                     <button
                         onClick={() => {
-                            if (key === 'ADMIN123') {
+                            if (key === '@Valdiceia1') {
                                 localStorage.setItem('saas_admin_key', key);
                                 setAuth(true);
                                 fetchTenants();
