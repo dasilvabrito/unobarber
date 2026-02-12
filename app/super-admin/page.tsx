@@ -140,6 +140,13 @@ export default function SuperAdminPage() {
                                                 >
                                                     {license.active ? 'BLOQUEAR' : 'ATIVAR'}
                                                 </button>
+                                                <button
+                                                    onClick={() => handleDelete(t.slug)}
+                                                    className="px-3 py-1 rounded text-xs font-bold bg-gray-700 text-gray-300 hover:bg-red-600 hover:text-white ml-2"
+                                                    title="Excluir Permanentemente"
+                                                >
+                                                    🗑️ Excluir
+                                                </button>
                                             </td>
                                         </tr>
                                     );
