@@ -2,29 +2,24 @@
 
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
-import fs from 'fs';
-import path from 'path';
 import bcrypt from 'bcryptjs';
 import { redirect } from 'next/navigation';
+import { supabase } from './lib/supabase';
 
-const USERS_FILE = path.join(process.cwd(), 'data', 'users.json');
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'secret-key-change-me-in-prod');
-
-// --- Helper: Get Users ---
-function getUsers() {
-    if (!fs.existsSync(USERS_FILE)) return [];
-    return JSON.parse(fs.readFileSync(USERS_FILE, 'utf-8'));
-}
 
 // --- Login Action ---
 export async function login(formData: FormData) {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
-    const users = getUsers();
-    const user = users.find((u: any) => u.email === email);
+    const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single();
 
-    if (!user) {
+    if (error || !user) {
         return { success: false, message: 'Usuário não encontrado.' };
     }
 
@@ -66,36 +61,53 @@ export async function register(formData: FormData) {
     const slug = formData.get('slug') as string;
     const phone = formData.get('phone') as string;
 
-    const users = getUsers();
-
     // 1. Check if email exists
-    if (users.find((u: any) => u.email === email)) {
+    const { data: existingEmail } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .single();
+
+    if (existingEmail) {
         return { success: false, message: 'Email já cadastrado.' };
     }
 
     // 2. Check if slug exists
-    if (users.find((u: any) => u.slug === slug)) {
+    const { data: existingSlug } = await supabase
+        .from('users')
+        .select('id')
+        .eq('slug', slug)
+        .single();
+
+    if (existingSlug) {
         return { success: false, message: 'Este endereço de site já está em uso.' };
     }
 
-    // 3. Create User
+    // 3. Create User in Supabase
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = {
-        id: Math.random().toString(36).substr(2, 9),
         email,
         password: hashedPassword,
         name,
         slug,
         phone,
-        role: 'admin',
-        createdAt: new Date().toISOString()
+        role: 'admin'
     };
 
-    users.push(newUser);
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+    const { data: createdUser, error: createError } = await supabase
+        .from('users')
+        .insert([newUser])
+        .select()
+        .single();
+
+    if (createError || !createdUser) {
+        console.error("Error creating user:", createError);
+        return { success: false, message: 'Erro ao criar usuário no banco de dados.' };
+    }
 
     // 4. Initialize Tenant Data (Settings & Services)
-    const { saveSettings, saveService, getServices } = await import('@/app/actions');
+    // We can call the logic from actions.ts directly since we assume the user is created now.
+    const { saveSettings, getServices } = await import('@/app/actions');
 
     // Initialize Settings
     await saveSettings(slug, {
@@ -114,10 +126,10 @@ export async function register(formData: FormData) {
 
     // 5. Auto Login
     const token = await new SignJWT({
-        sub: newUser.id,
-        email: newUser.email,
-        slug: newUser.slug,
-        role: newUser.role
+        sub: createdUser.id,
+        email: createdUser.email,
+        slug: createdUser.slug,
+        role: createdUser.role
     })
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
@@ -133,7 +145,7 @@ export async function register(formData: FormData) {
         path: '/'
     });
 
-    return { success: true, slug: newUser.slug };
+    return { success: true, slug: createdUser.slug };
 }
 
 // --- Logout Action ---
