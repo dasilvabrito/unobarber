@@ -102,7 +102,8 @@ export async function register(formData: FormData) {
 
     if (createError || !createdUser) {
         console.error("Error creating user:", createError);
-        return { success: false, message: `Erro ao criar usuário: ${createError?.message || 'Erro desconhecido'} (Code: ${createError?.code})` };
+        const urlDebug = process.env.NEXT_PUBLIC_SUPABASE_URL ? process.env.NEXT_PUBLIC_SUPABASE_URL.substring(0, 20) + '...' : 'UNDEFINED';
+        return { success: false, message: `Erro ao criar usuário: ${createError?.message || 'Erro desconhecido'} (Code: ${createError?.code}) | URL: ${urlDebug}` };
     }
 
     // 4. Initialize Tenant Data (Settings & Services)
