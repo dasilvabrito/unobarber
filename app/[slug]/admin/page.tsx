@@ -738,15 +738,15 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-salon-stone mb-2 text-sm">Link do Google Maps (Incorporar/Embed)</label>
+                                    <label className="block text-salon-stone mb-2 text-sm">Link do Google Maps</label>
                                     <input
                                         type="text"
                                         value={settings.googleMapsUrl || ''}
                                         onChange={(e) => setSettings({ ...settings, googleMapsUrl: e.target.value })}
                                         className="w-full bg-salon-black border border-salon-brown rounded-lg p-3 text-white focus:border-salon-gold outline-none"
-                                        placeholder="https://www.google.com/maps/embed?..."
+                                        placeholder="Cola aqui o link (ex: https://maps.app.goo.gl/...)"
                                     />
-                                    <p className="text-xs text-salon-stone mt-1">Cole o link "src" do código de incorporação do Google Maps.</p>
+                                    <p className="text-xs text-salon-stone mt-1">Aceita link curto ou link completo do Google Maps.</p>
                                 </div>
                             </div>
 

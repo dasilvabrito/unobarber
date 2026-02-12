@@ -101,7 +101,12 @@ const DEFAULT_SETTINGS = {
     slogan: "",
     address: "",
     googleMapsUrl: "",
-    instagram: ""
+    instagram: "",
+    socialMedia: {
+        instagram: "",
+        facebook: "",
+        whatsapp: ""
+    }
 };
 
 export async function getSettings(slug: string) {
