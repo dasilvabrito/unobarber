@@ -14,8 +14,8 @@ export default function Header({ slug }: { slug: string }) {
         const settings = await getSettings(slug);
         if (settings.logoUrl) setLogoUrl(settings.logoUrl);
         setSocials({
-          instagram: settings.instagram || "",
-          whatsapp: settings.whatsapp || "",
+          instagram: settings.socialMedia?.instagram || settings.instagram || "",
+          whatsapp: settings.socialMedia?.whatsapp || settings.whatsapp || "",
           googleMapsUrl: settings.googleMapsUrl || ""
         });
       } catch (error) {
