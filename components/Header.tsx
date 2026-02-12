@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 
 export default function Header({ slug }: { slug: string }) {
   const [logoUrl, setLogoUrl] = useState("");
-  const [socials, setSocials] = useState({ instagram: "", whatsapp: "" });
+  const [socials, setSocials] = useState({ instagram: "", whatsapp: "", googleMapsUrl: "" });
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -15,7 +15,8 @@ export default function Header({ slug }: { slug: string }) {
         if (settings.logoUrl) setLogoUrl(settings.logoUrl);
         setSocials({
           instagram: settings.instagram || "",
-          whatsapp: settings.whatsapp || ""
+          whatsapp: settings.whatsapp || "",
+          googleMapsUrl: settings.googleMapsUrl || ""
         });
       } catch (error) {
         console.error("Failed to load header settings", error);
