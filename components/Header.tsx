@@ -48,9 +48,6 @@ export default function Header({ slug }: { slug: string }) {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
           <Link href={baseUrl} className="text-salon-beige hover:text-salon-gold transition-colors font-medium">
-            Início
-          </Link>
-          <Link href={`${baseUrl}/book`} className="text-salon-beige hover:text-salon-gold transition-colors font-medium">
             Agendar
           </Link>
           <Link href={`${baseUrl}/my-appointments`} className="text-salon-beige hover:text-salon-gold transition-colors font-medium">
@@ -80,13 +77,6 @@ export default function Header({ slug }: { slug: string }) {
           <nav className="flex flex-col p-6 space-y-4">
             <Link
               href={baseUrl}
-              onClick={() => setIsMenuOpen(false)}
-              className="text-xl font-medium text-white hover:text-salon-gold py-2 border-b border-white/5"
-            >
-              🏠 Início
-            </Link>
-            <Link
-              href={`${baseUrl}/book`}
               onClick={() => setIsMenuOpen(false)}
               className="text-xl font-medium text-white hover:text-salon-gold py-2 border-b border-white/5"
             >
