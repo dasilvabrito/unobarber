@@ -523,14 +523,14 @@ END:VCALENDAR`;
                     Voltar
                 </button>
 
-                ) : (
-                <button
-                    onClick={handleSubmit}
-                    disabled={!isStepValid()}
-                    className={`flex-1 ml-4 md:flex-none px-6 py-3 rounded-lg font-bold transition-all shadow-lg ${!isStepValid() ? 'bg-salon-stone/20 text-salon-stone cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-500 shadow-green-900/20 active:scale-95'}`}
-                >
-                    Confirmar
-                </button>
+                {currentStep === steps.length - 1 && (
+                    <button
+                        onClick={handleSubmit}
+                        disabled={!isStepValid()}
+                        className={`flex-1 ml-4 md:flex-none px-6 py-3 rounded-lg font-bold transition-all shadow-lg ${!isStepValid() ? 'bg-salon-stone/20 text-salon-stone cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-500 shadow-green-900/20 active:scale-95'}`}
+                    >
+                        Confirmar
+                    </button>
                 )}
             </div>
         </div>
