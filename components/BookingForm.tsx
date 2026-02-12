@@ -6,9 +6,7 @@ import PhoneInput from './PhoneInput';
 
 const steps = ['Serviço', 'Profissional', 'Data', 'Horário', 'Confirmação'];
 
-const timeSlots = [
-    "09:00", "09:45", "10:30", "11:15", "13:00", "13:45", "14:30", "15:15", "16:00", "16:45", "17:30", "18:15", "19:00"
-];
+
 
 export default function BookingForm({ slug }: { slug: string }) {
     const [currentStep, setCurrentStep] = useState(0);
@@ -433,7 +431,7 @@ END:VCALENDAR`;
                             <h4 className="text-salon-gold font-bold mb-2">Resumo do Agendamento</h4>
                             <p className="text-salon-stone">Serviço: <span className="text-white">{services.find(s => s.id === selectedService)?.title}</span></p>
                             <p className="text-salon-stone">Data: <span className="text-white">{selectedDate && new Date(selectedDate).toLocaleDateString('pt-BR')}</span></p>
-                            <p className="text-salon-stone">Horário: <span className="text-white">{selectedTime}</span></p>
+                            <p className="text-salon-stone">Horário: <span className="text-salon-gold font-bold text-lg">{selectedTime || '(Selecione um horário)'}</span></p>
                         </div>
                     </div>
                 )}

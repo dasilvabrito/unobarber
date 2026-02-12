@@ -103,7 +103,7 @@ export async function register(formData: FormData) {
     if (createError || !createdUser) {
         console.error("Error creating user:", createError);
         const urlDebug = process.env.NEXT_PUBLIC_SUPABASE_URL ? process.env.NEXT_PUBLIC_SUPABASE_URL.substring(0, 20) + '...' : 'UNDEFINED';
-        return { success: false, message: `Erro ao criar usuário: ${createError?.message || 'Erro desconhecido'} (Code: ${createError?.code}) | URL: ${urlDebug}` };
+        return { success: false, message: `Erro ao criar usuário: ${createError?.message || 'Erro desconhecido'} (Code: ${createError?.code})` };
     }
 
     // 4. Initialize Tenant Data (Settings & Services)
@@ -118,7 +118,7 @@ export async function register(formData: FormData) {
         license: {
             active: true,
             expirationDate: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0], // 1 Month Free Trial
-            plan: 'trial'
+            plan: 'starter'
         }
     });
 
