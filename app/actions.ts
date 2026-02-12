@@ -480,3 +480,13 @@ export async function updateTenantStatus(slug: string, active: boolean) {
     await supabase.from('tenants').update({ settings: newSettings }).eq('slug', slug);
     return { success: true };
 }
+
+export async function deleteTenant(slug: string) {
+    // Delete in order to avoid FK constraints if they exist (though we are loose)
+    await supabase.from('bookings').delete().eq('tenant_slug', slug);
+    await supabase.from('services').delete().eq('tenant_slug', slug);
+    await supabase.from('professionals').delete().eq('tenant_slug', slug);
+    await supabase.from('users').delete().eq('slug', slug);
+    await supabase.from('tenants').delete().eq('slug', slug);
+    return { success: true };
+}
