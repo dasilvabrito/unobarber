@@ -36,6 +36,7 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
     const [financialReport, setFinancialReport] = useState<{ bookings: any[], payments: any[] }>({ bookings: [], payments: [] });
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
     const [paymentProfessional, setPaymentProfessional] = useState<any>(null);
+    const [statementProfessional, setStatementProfessional] = useState<any>(null); // For Detailed Statement
     const [paymentAmount, setPaymentAmount] = useState<string>('');
     const [paymentNote, setPaymentNote] = useState('');
 
@@ -881,7 +882,15 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                                     <td className={`p-4 text-right font-mono font-bold ${balance >= 0 ? 'text-blue-400' : 'text-red-500'} print:text-black`}>
                                                         R$ {balance.toFixed(2)}
                                                     </td>
-                                                    <td className="p-4 text-center print:hidden">
+                                                    <td className="p-4 text-center print:hidden flex justify-end gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                setStatementProfessional(pro);
+                                                            }}
+                                                            className="text-xs bg-salon-gold/20 text-salon-gold border border-salon-gold/50 px-3 py-1 rounded hover:bg-salon-gold hover:text-black transition-all"
+                                                        >
+                                                            Extrato
+                                                        </button>
                                                         <button
                                                             onClick={() => {
                                                                 setPaymentProfessional(pro);
@@ -901,7 +910,7 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                         </div>
 
                         {/* Recent Payments List */}
-                        <div className="bg-salon-black/50 border border-salon-brown/30 rounded-xl overflow-hidden">
+                        <div className="bg-salon-black/50 border border-salon-brown/30 rounded-xl overflow-hidden print:hidden">
                             <div className="p-4 border-b border-salon-brown/30 bg-salon-white/5">
                                 <h3 className="font-bold text-white">Histórico de Pagamentos (Período)</h3>
                             </div>
@@ -1656,6 +1665,154 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                     </div>
                 )
             }
+            {/* Statement Modal */}
+            {statementProfessional && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 print:relative print:bg-white print:p-0 print:block">
+                    <div className="bg-salon-black border border-salon-gold/20 p-6 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto print:border-none print:shadow-none print:bg-white print:max-w-none print:max-h-none print:overflow-visible">
+                        <div className="flex justify-between items-center mb-6 print:hidden">
+                            <h2 className="text-xl font-bold text-white">Extrato Detalhado</h2>
+                            <button onClick={() => setStatementProfessional(null)} className="text-salon-stone hover:text-white">✕</button>
+                        </div>
+
+                        <div className="print:block">
+                            <div className="text-center mb-8 border-b border-gray-200 pb-4">
+                                <h1 className="text-2xl font-bold text-white print:text-black mb-1">{statementProfessional.name}</h1>
+                                <p className="text-salon-stone print:text-gray-600 text-sm">
+                                    Extrato de Período: {new Date(financialStartDate).toLocaleDateString()} até {new Date(financialEndDate).toLocaleDateString()}
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 print:grid-cols-2">
+                                {/* CREDITS SECTION */}
+                                <div>
+                                    <h3 className="text-lg font-bold text-green-400 print:text-black border-b border-green-400/30 pb-2 mb-4">
+                                        Créditos (Comissões)
+                                    </h3>
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="text-xs text-salon-stone uppercase border-b border-white/10 print:text-gray-500 print:border-gray-300">
+                                            <tr>
+                                                <th className="py-2">Data</th>
+                                                <th className="py-2">Serviço/Cliente</th>
+                                                <th className="py-2 text-right">Valor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/10 print:divide-gray-200">
+                                            {financialReport.bookings
+                                                .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
+                                                .map(b => {
+                                                    const commissionRate = statementProfessional.commissionPercentage || 100;
+                                                    const commission = (b.service_price || 0) * (commissionRate / 100);
+                                                    return (
+                                                        <tr key={b.id}>
+                                                            <td className="py-2 text-salon-stone print:text-gray-700">{new Date(b.date).toLocaleDateString()}</td>
+                                                            <td className="py-2 text-white print:text-black">
+                                                                <div>{b.service?.name}</div>
+                                                                <div className="text-xs text-salon-stone">{b.customerName}</div>
+                                                            </td>
+                                                            <td className="py-2 text-right text-green-400 print:text-black">R$ {commission.toFixed(2)}</td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            {financialReport.bookings.filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name).length === 0 && (
+                                                <tr>
+                                                    <td colSpan={3} className="py-4 text-center text-salon-stone">Nenhum serviço neste período.</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                        <tfoot className="border-t border-white/20 print:border-gray-300 font-bold">
+                                            <tr>
+                                                <td colSpan={2} className="py-3 text-white print:text-black">Total Créditos</td>
+                                                <td className="py-3 text-right text-green-400 print:text-black">
+                                                    R$ {financialReport.bookings
+                                                        .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
+                                                        .reduce((acc, b) => acc + ((b.service_price || 0) * ((statementProfessional.commissionPercentage || 100) / 100)), 0)
+                                                        .toFixed(2)}
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+
+                                {/* DEBITS SECTION */}
+                                <div>
+                                    <h3 className="text-lg font-bold text-red-400 print:text-black border-b border-red-400/30 pb-2 mb-4">
+                                        Débitos (Pagamentos/Adiantamentos)
+                                    </h3>
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="text-xs text-salon-stone uppercase border-b border-white/10 print:text-gray-500 print:border-gray-300">
+                                            <tr>
+                                                <th className="py-2">Data</th>
+                                                <th className="py-2">Descrição</th>
+                                                <th className="py-2 text-right">Valor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/10 print:divide-gray-200">
+                                            {financialReport.payments
+                                                .filter(p => p.professional_id === statementProfessional.id)
+                                                .map(p => (
+                                                    <tr key={p.id}>
+                                                        <td className="py-2 text-salon-stone print:text-gray-700">{new Date(p.date).toLocaleDateString()}</td>
+                                                        <td className="py-2 text-white print:text-black">{p.note || 'Pagamento'}</td>
+                                                        <td className="py-2 text-right text-red-400 print:text-black">R$ {parseFloat(p.amount).toFixed(2)}</td>
+                                                    </tr>
+                                                ))}
+                                            {financialReport.payments.filter(p => p.professional_id === statementProfessional.id).length === 0 && (
+                                                <tr>
+                                                    <td colSpan={3} className="py-4 text-center text-salon-stone">Nenhum pagamento desete período.</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                        <tfoot className="border-t border-white/20 print:border-gray-300 font-bold">
+                                            <tr>
+                                                <td colSpan={2} className="py-3 text-white print:text-black">Total Débitos</td>
+                                                <td className="py-3 text-right text-red-400 print:text-black">
+                                                    R$ {financialReport.payments
+                                                        .filter(p => p.professional_id === statementProfessional.id)
+                                                        .reduce((acc, p) => acc + parseFloat(p.amount), 0)
+                                                        .toFixed(2)}
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 pt-4 border-t border-salon-gold/30 print:border-black flex justify-between items-center bg-salon-white/5 p-4 rounded-xl print:bg-gray-100">
+                                <div className="text-lg text-white print:text-black">Saldo Final do Período</div>
+                                <div className={`text-3xl font-bold print:text-black ${(financialReport.bookings
+                                        .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
+                                        .reduce((acc, b) => acc + ((b.service_price || 0) * ((statementProfessional.commissionPercentage || 100) / 100)), 0) -
+                                        financialReport.payments
+                                            .filter(p => p.professional_id === statementProfessional.id)
+                                            .reduce((acc, p) => acc + parseFloat(p.amount), 0)) >= 0 ? 'text-blue-400' : 'text-red-500'
+                                    }`}>
+                                    R$ {(financialReport.bookings
+                                        .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
+                                        .reduce((acc, b) => acc + ((b.service_price || 0) * ((statementProfessional.commissionPercentage || 100) / 100)), 0) -
+                                        financialReport.payments
+                                            .filter(p => p.professional_id === statementProfessional.id)
+                                            .reduce((acc, p) => acc + parseFloat(p.amount), 0)).toFixed(2)}
+                                </div>
+                            </div>
+
+                            <div className="mt-8 flex justify-end gap-4 print:hidden">
+                                <button
+                                    onClick={() => setStatementProfessional(null)}
+                                    className="px-4 py-2 rounded text-salon-stone hover:bg-white/10 transition-colors"
+                                >
+                                    Fechar
+                                </button>
+                                <button
+                                    onClick={() => window.print()}
+                                    className="bg-salon-gold text-salon-black px-6 py-2 rounded font-bold hover:bg-white transition-colors"
+                                >
+                                    🖨️ Imprimir Extrato
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
