@@ -223,10 +223,17 @@ export async function cancelBooking(slug: string, bookingId: string) {
     return { success: true };
 }
 
-export async function completeBooking(slug: string, bookingId: string, days?: number) {
+export async function completeBooking(slug: string, bookingId: string, days?: number, finalPrice?: number) {
+    const updateData: any = { status: 'completed' };
+
+    // If a final price is provided, update the service snapshot price
+    if (finalPrice !== undefined) {
+        updateData.service_price = finalPrice;
+    }
+
     const { error } = await supabase
         .from('bookings')
-        .update({ status: 'completed' })
+        .update(updateData)
         .eq('id', bookingId)
         .eq('tenant_slug', slug);
 

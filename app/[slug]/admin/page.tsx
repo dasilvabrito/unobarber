@@ -27,6 +27,7 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
         pendingFollowUps: 0
     });
     const [finishingBooking, setFinishingBooking] = useState<string | null>(null);
+    const [finishPrice, setFinishPrice] = useState<number>(0);
 
     useEffect(() => {
         fetchData();
@@ -95,11 +96,35 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
         }
     };
 
+    const [finishingBooking, setFinishingBooking] = useState<string | null>(null);
+    const [finishPrice, setFinishPrice] = useState<number>(0);
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    // ... (rest of useEffects/fetchData remain same, assuming they are outside this block or I need to be careful with range)
+
+    // Wait, I need to insert state near other states. 
+    // And update handleComplete.
+
+    // Let's do it in chunks.
+    // This tool call is for state and handleComplete.
+
+    // I can't double declare existing states.
+    // I will target the finishingBooking line to add finishPrice below it.
+    // And replace handleComplete.
+
+    // ... re-reading the file content to be precise. 
+    // Line 29 is: const [finishingBooking, setFinishingBooking] = useState<string | null>(null);
+    // Line 98 is start of handleComplete.
+
     const handleComplete = async (days: number) => {
         if (!finishingBooking) return;
 
         const { completeBooking } = await import('@/app/actions');
-        await completeBooking(slug, finishingBooking, days);
+        // Pass the finishPrice to the action
+        await completeBooking(slug, finishingBooking, days, finishPrice);
 
         // Update Local State
         setBookings(bookings.map(b =>
@@ -107,8 +132,9 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                 ? {
                     ...b,
                     status: 'completed',
+                    service: { ...b.service, price: finishPrice }, // Update local price for immediate feedback
                     followUp: {
-                        scheduledDate: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        scheduledDate: new Date(Date.now() + days * 24 * 60 * 1000).toISOString().split('T')[0],
                         days: days
                     }
                 }
@@ -590,7 +616,10 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                                         {booking.status === 'confirmed' && (
                                                             <>
                                                                 <button
-                                                                    onClick={() => setFinishingBooking(booking.id)}
+                                                                    onClick={() => {
+                                                                        setFinishingBooking(booking.id);
+                                                                        setFinishPrice(booking.service?.price || 0);
+                                                                    }}
                                                                     className="p-2 text-green-500 hover:bg-green-500/10 rounded-lg transition-colors border border-green-500/30"
                                                                     title="Concluir Atendimento"
                                                                 >
@@ -626,7 +655,17 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                         <div className="bg-salon-black border border-salon-gold/30 rounded-2xl p-6 w-full max-w-sm shadow-2xl relative">
                             <h3 className="text-xl font-bold text-white mb-2">Encerrar Atendimento</h3>
-                            <p className="text-salon-stone mb-6">Deseja agendar um lembrete automático para o cliente voltar?</p>
+                            <p className="text-salon-stone mb-4">Confirme o valor final e agende o retorno.</p>
+
+                            <div className="mb-6">
+                                <label className="block text-salon-stone text-sm mb-1">Valor do Serviço (R$)</label>
+                                <input
+                                    type="number"
+                                    value={finishPrice}
+                                    onChange={(e) => setFinishPrice(parseFloat(e.target.value))}
+                                    className="w-full bg-salon-black border border-salon-gold/50 rounded-lg p-3 text-white text-xl font-bold focus:border-salon-gold outline-none"
+                                />
+                            </div>
 
                             <div className="grid grid-cols-1 gap-3 mb-6">
                                 <button onClick={() => handleComplete(20)} className="bg-salon-gold/10 hover:bg-salon-gold hover:text-black border border-salon-gold/30 text-salon-gold py-3 rounded-xl transition-all font-bold text-left px-4">

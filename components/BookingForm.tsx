@@ -10,6 +10,7 @@ const steps = ['Serviço', 'Profissional', 'Data', 'Horário', 'Confirmação'];
 
 export default function BookingForm({ slug }: { slug: string }) {
     const [currentStep, setCurrentStep] = useState(0);
+    const [salonName, setSalonName] = useState("");
     const [selectedService, setSelectedService] = useState<string | null>(null);
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedTime, setSelectedTime] = useState("");
@@ -29,13 +30,19 @@ export default function BookingForm({ slug }: { slug: string }) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const { getServices, getProfessionals } = await import('@/app/actions');
-                const [servicesData, professionalsData] = await Promise.all([
+                const { getServices, getProfessionals, getSettings } = await import('@/app/actions');
+                const [servicesData, professionalsData, settingsData] = await Promise.all([
                     getServices(slug),
-                    getProfessionals(slug)
+                    getProfessionals(slug),
+                    getSettings(slug)
                 ]);
                 setServices(servicesData.filter((s: any) => s.active !== false));
                 setProfessionals(professionalsData.filter((p: any) => p.active !== false));
+
+                // Store settings in valid way (e.g. extending existing state or new one)
+                // For now, we only need salonName. Let's add specific state for it or just use a ref/variable?
+                // Better to add a state for it.
+                setSalonName(settingsData.salonName || "Salao");
             } catch (error) {
                 console.error("Failed to fetch data");
             }
@@ -165,11 +172,11 @@ export default function BookingForm({ slug }: { slug: string }) {
         const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
-SUMMARY:Agendamento Julio Studio - ${service.title}
+SUMMARY:Agendamento ${salonName} - ${service.title}
 DTSTART:${formatICSDate(startDate)}
 DTEND:${formatICSDate(endDate)}
 DESCRIPTION:Serviço: ${service.title}\\nCliente: ${formData.name}
-LOCATION:Julio Studio
+LOCATION:${salonName}
 END:VEVENT
 END:VCALENDAR`;
 
@@ -177,7 +184,10 @@ END:VCALENDAR`;
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'agendamento-julio-studio.ics');
+        const sanitizedName = salonName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        const fileName = `agendamento-${sanitizedName}.ics`;
+
+        link.setAttribute('download', fileName);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -253,12 +263,12 @@ END:VCALENDAR`;
                             </svg>
                             Adicionar ao Google Agenda
                         </button>
-                        <Link
-                            href={`/${slug}`}
+                        <button
+                            onClick={() => window.location.reload()}
                             className="px-6 py-3 bg-salon-gold text-salon-black rounded-lg hover:bg-white transition-colors font-bold"
                         >
                             Voltar ao Início
-                        </Link>
+                        </button>
                     </div>
                 </div>
             </div>
