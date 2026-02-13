@@ -152,6 +152,9 @@ export async function getSlugSuggestions(slug: string) {
 // --- Booking Management ---
 
 export async function getBookings(slug: string) {
+    // 0. Auto-complete past bookings
+    await autoCompletePastBookings(slug);
+
     const { data, error } = await supabase
         .from('bookings')
         .select('*')
@@ -171,6 +174,7 @@ export async function getBookings(slug: string) {
         client: { name: b.client_name, phone: b.client_phone },
         service: { title: b.service_title, price: b.service_price },
         professionalName: b.professional_name,
+        professionalId: b.professional_id, // Ensure this is returned
         status: b.status,
         createdAt: b.created_at,
         // Mock followUp 
@@ -180,6 +184,26 @@ export async function getBookings(slug: string) {
             scheduledDate: b.follow_up_date
         } : null
     }));
+}
+
+async function autoCompletePastBookings(slug: string) {
+    const today = new Date().toISOString().split('T')[0];
+
+    // Find confirmed bookings from yesterday or before
+    const { data: pastBookings } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('tenant_slug', slug)
+        .eq('status', 'confirmed')
+        .lt('date', today);
+
+    if (pastBookings && pastBookings.length > 0) {
+        const ids = pastBookings.map(b => b.id);
+        await supabase
+            .from('bookings')
+            .update({ status: 'completed' })
+            .in('id', ids);
+    }
 }
 
 export async function saveBooking(slug: string, bookingData: any) {
@@ -234,6 +258,10 @@ export async function completeBooking(slug: string, bookingId: string, days?: nu
     // If a final price is provided, update the service snapshot price
     if (finalPrice !== undefined) {
         updateData.service_price = finalPrice;
+    }
+
+    if (productsPrice !== undefined) {
+        updateData.products_price = productsPrice;
     }
 
     // If days are provided, calculate and scheduled follow up
@@ -456,51 +484,23 @@ export async function registerProfessionalPayment(slug: string, professionalId: 
 }
 
 export async function getFinancialReport(slug: string, startDate: string, endDate: string) {
-    // 1. Get Completed Bookings in Range
-    // We need to join with professionals to get current commission? 
-    // OR we rely on the fact that commission is calculated based on professional attached to booking.
-    // Ideally we should snapshot commission too, but simpler now: use current pro commission or 100 if missing.
-    // Actually, report usually needs grouping by professional.
-
-    // Let's fetch all completed bookings in range
+    // 1. Fetch bookings with professional details using relation
     const { data: bookings } = await supabase
         .from('bookings')
         .select(`
             *,
-            professional:professional_name (id, commission_percentage)
-        `) // This join might fail if professional_name is just text Name. 
-    // In saveBooking we stored professional_name as text. We didn't store professional_id in bookings!
-    // CHECK SCHEMA: bookings has professional_name text. It does NOT have professional_id uuid.
-    // This is a flaw in previous design. We must add professional_id to bookings to properly link comission.
+            professional:professional_id (
+                id,
+                name,
+                commission_percentage
+            )
+        `)
+        .eq('tenant_slug', slug)
+        .in('status', ['completed']) // Only completed bookings count for report
+        .gte('date', startDate)
+        .lte('date', endDate);
 
-    // CRITICAL FIX: We need professional_id in bookings to link to professional settings for accurate commission report.
-    // However, if we don't have it, we have to match by name (risky) or fetch all pros and match.
-    // Let's check saveBooking.. it takes professionalId from frontend but only saves name?
-    // Line 131 BookingForm: professionalId: selectedProfessional
-    // Line 190 actions.ts: professional_name: bookingData.professionalName
-
-    // We should add professional_id to bookings table to be robust. 
-    // For now, I will fetch all professionals and match by name to calculate commission? 
-    // Or can I update schema to add professional_id? 
-    // I added `professional_payments` linked to `professionals(id)`. 
-    // So I DEFINITELY need to link bookings to `professionals(id)`.
-
-    // Let's assume I can add `professional_id` to bookings schema.
-    // AND update saveBooking to save it.
-
-    // Wait, I can't easily execute SQL on my own against live DB to change schema if user doesn't run it.
-    // But I am "Implementing". 
-
-    // PLAN B (Less intrusive): Match by Name. 
-    // But `professional_payments` uses ID. 
-    // So in the UI if I select a Professional for Payment, I use ID.
-    // To calculate their balance, I need their bookings.
-    // If bookings only have Name, I have to find bookings where `professional_name` === `Professional.name`.
-    // This works if names are unique.
-
-    // Better: Update `saveBooking` to save `professional_id` if column exists?
-    // I will simply add `professional_id` to schema and actions now. It's necessary for this feature to work well.
-
+    // 2. Fetch payments
     const { data: payments } = await supabase
         .from('professional_payments')
         .select('*')

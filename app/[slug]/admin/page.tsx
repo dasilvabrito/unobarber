@@ -623,9 +623,16 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                                             </span>
                                                         )}
                                                         {booking.status === 'completed' && (
-                                                            <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                                                                Concluído {booking.followUp && `(Retorno: ${booking.followUp.days}d)`}
-                                                            </span>
+                                                            <div className="flex flex-col items-start gap-1">
+                                                                <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                                                                    Concluído {booking.followUp && `(Retorno: ${booking.followUp.days}d)`}
+                                                                </span>
+                                                                {(booking.service.price > 0 || booking.products_price > 0) && (
+                                                                    <span className="text-xs text-salon-stone font-mono">
+                                                                        Valores: {booking.service.price > 0 && `S:${booking.service.price.toFixed(2)}`} {booking.products_price > 0 && `P:${booking.products_price.toFixed(2)}`}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         )}
                                                         {booking.status === 'cancelled' && (
                                                             <span className="bg-red-500/20 text-red-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
