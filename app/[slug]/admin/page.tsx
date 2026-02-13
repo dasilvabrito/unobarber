@@ -28,6 +28,16 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
     });
     const [finishingBooking, setFinishingBooking] = useState<string | null>(null);
     const [finishPrice, setFinishPrice] = useState<number>(0);
+    const [finishProductsPrice, setFinishProductsPrice] = useState<number>(0);
+
+    // Financial State
+    const [financialStartDate, setFinancialStartDate] = useState(new Date().toISOString().slice(0, 8) + '01'); // First day of month
+    const [financialEndDate, setFinancialEndDate] = useState(new Date().toISOString().slice(0, 10)); // Today
+    const [financialReport, setFinancialReport] = useState<{ bookings: any[], payments: any[] }>({ bookings: [], payments: [] });
+    const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [paymentProfessional, setPaymentProfessional] = useState<any>(null);
+    const [paymentAmount, setPaymentAmount] = useState<string>('');
+    const [paymentNote, setPaymentNote] = useState('');
 
     useEffect(() => {
         fetchData();
@@ -96,9 +106,6 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
         }
     };
 
-    const [finishingBooking, setFinishingBooking] = useState<string | null>(null);
-    const [finishPrice, setFinishPrice] = useState<number>(0);
-
     useEffect(() => {
         fetchData();
     }, []);
@@ -124,7 +131,7 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
 
         const { completeBooking } = await import('@/app/actions');
         // Pass the finishPrice to the action
-        await completeBooking(slug, finishingBooking, days, finishPrice);
+        await completeBooking(slug, finishingBooking, days, finishPrice, finishProductsPrice);
 
         // Update Local State
         setBookings(bookings.map(b =>
@@ -170,17 +177,21 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
         setBookings(newBookings);
     };
 
-    // Fetch Subscription Data when Financial Tab is active
+    // Fetch Subscription & Financial Data
     useEffect(() => {
         if (activeTab === 'financial') {
-            const fetchSub = async () => {
-                const { getSystemSubscription } = await import('@/app/actions');
-                const data = await getSystemSubscription(slug);
-                setSubscriptionData(data);
+            const fetchFinancial = async () => {
+                const { getSystemSubscription, getFinancialReport } = await import('@/app/actions');
+                const [subData, reportData] = await Promise.all([
+                    getSystemSubscription(slug),
+                    getFinancialReport(slug, financialStartDate, financialEndDate)
+                ]);
+                setSubscriptionData(subData);
+                setFinancialReport(reportData);
             };
-            fetchSub();
+            fetchFinancial();
         }
-    }, [activeTab, slug]);
+    }, [activeTab, slug, financialStartDate, financialEndDate]);
 
     const handleSaveSettings = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -252,6 +263,26 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
             fetchData();
         } catch (error) {
             alert("Erro ao remover profissional");
+        }
+    };
+
+    const handleRegisterPayment = async () => {
+        if (!paymentProfessional || !paymentAmount) return;
+        try {
+            const { registerProfessionalPayment } = await import('@/app/actions');
+            await registerProfessionalPayment(slug, paymentProfessional.id, parseFloat(paymentAmount), paymentNote);
+            setPaymentModalOpen(false);
+            setPaymentAmount('');
+            setPaymentNote('');
+            setPaymentProfessional(null);
+
+            // Refresh Report
+            const { getFinancialReport } = await import('@/app/actions');
+            const reportData = await getFinancialReport(slug, financialStartDate, financialEndDate);
+            setFinancialReport(reportData);
+            alert("Pagamento registrado!");
+        } catch (error) {
+            alert("Erro ao registrar pagamento");
         }
     };
 
@@ -657,14 +688,25 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                             <h3 className="text-xl font-bold text-white mb-2">Encerrar Atendimento</h3>
                             <p className="text-salon-stone mb-4">Confirme o valor final e agende o retorno.</p>
 
-                            <div className="mb-6">
-                                <label className="block text-salon-stone text-sm mb-1">Valor do Serviço (R$)</label>
-                                <input
-                                    type="number"
-                                    value={finishPrice}
-                                    onChange={(e) => setFinishPrice(parseFloat(e.target.value))}
-                                    className="w-full bg-salon-black border border-salon-gold/50 rounded-lg p-3 text-white text-xl font-bold focus:border-salon-gold outline-none"
-                                />
+                            <div className="mb-6 grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-salon-stone text-xs mb-1">Serviço (Comissão)</label>
+                                    <input
+                                        type="number"
+                                        value={finishPrice}
+                                        onChange={(e) => setFinishPrice(parseFloat(e.target.value))}
+                                        className="w-full bg-salon-black border border-salon-gold/50 rounded-lg p-3 text-white text-lg font-bold focus:border-salon-gold outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-salon-stone text-xs mb-1">Produtos (Extra)</label>
+                                    <input
+                                        type="number"
+                                        value={finishProductsPrice}
+                                        onChange={(e) => setFinishProductsPrice(parseFloat(e.target.value))}
+                                        className="w-full bg-salon-black border border-salon-gold/50 rounded-lg p-3 text-white text-lg font-bold focus:border-salon-gold outline-none"
+                                    />
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 gap-3 mb-6">
@@ -692,6 +734,215 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                     </div>
                 )
             }
+            {
+                activeTab === 'financial' && (
+                    <div className="space-y-8 animate-in fade-in duration-500">
+                        {/* Header & Filter */}
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-salon-black/50 p-6 rounded-xl border border-salon-gold/20">
+                            <div>
+                                <h2 className="text-2xl font-bold text-white mb-2">Relatório Financeiro</h2>
+                                <p className="text-salon-stone text-sm">Acompanhe comissões, faturamento e pagamentos.</p>
+                            </div>
+                            <div className="flex gap-4 items-end">
+                                <div>
+                                    <label className="block text-salon-stone text-xs mb-1">Início</label>
+                                    <input
+                                        type="date"
+                                        value={financialStartDate}
+                                        onChange={(e) => setFinancialStartDate(e.target.value)}
+                                        className="bg-salon-black border border-salon-brown rounded px-3 py-2 text-white outline-none focus:border-salon-gold"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-salon-stone text-xs mb-1">Fim</label>
+                                    <input
+                                        type="date"
+                                        value={financialEndDate}
+                                        onChange={(e) => setFinancialEndDate(e.target.value)}
+                                        className="bg-salon-black border border-salon-brown rounded px-3 py-2 text-white outline-none focus:border-salon-gold"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Summary Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="bg-salon-black border border-salon-brown/50 p-4 rounded-xl">
+                                <h3 className="text-salon-stone text-xs uppercase tracking-wider mb-2">Faturamento Total</h3>
+                                <div className="text-2xl font-bold text-green-400">
+                                    R$ {financialReport.bookings.reduce((acc, b) => acc + (b.service_price || 0) + (b.products_price || 0), 0).toFixed(2)}
+                                </div>
+                                <div className="text-xs text-salon-stone mt-1">Serviços + Produtos</div>
+                            </div>
+                            <div className="bg-salon-black border border-salon-brown/50 p-4 rounded-xl">
+                                <h3 className="text-salon-stone text-xs uppercase tracking-wider mb-2">Comissão Gerada</h3>
+                                <div className="text-2xl font-bold text-salon-gold">
+                                    R$ {financialReport.bookings.reduce((acc, b) => {
+                                        // Calculate commission based on snapshot or current pro settings
+                                        // We fetched professionals with commission_percentage in getFinancialReport
+                                        // Actually getFinancialReport returned bookings with joined professional
+                                        const pro = b.professional;
+                                        const commissionRate = pro?.commission_percentage || 100;
+                                        const commissionValue = (b.service_price || 0) * (commissionRate / 100);
+                                        return acc + commissionValue;
+                                    }, 0).toFixed(2)}
+                                </div>
+                                <div className="text-xs text-salon-stone mt-1">Ref. aos Profissionais</div>
+                            </div>
+                            <div className="bg-salon-black border border-salon-brown/50 p-4 rounded-xl">
+                                <h3 className="text-salon-stone text-xs uppercase tracking-wider mb-2">Venda de Produtos</h3>
+                                <div className="text-2xl font-bold text-blue-400">
+                                    R$ {financialReport.bookings.reduce((acc, b) => acc + (b.products_price || 0), 0).toFixed(2)}
+                                </div>
+                                <div className="text-xs text-salon-stone mt-1">100% Salão</div>
+                            </div>
+                            <div className="bg-salon-black border border-salon-brown/50 p-4 rounded-xl">
+                                <h3 className="text-salon-stone text-xs uppercase tracking-wider mb-2">Pagamentos Realizados</h3>
+                                <div className="text-2xl font-bold text-red-400">
+                                    R$ {financialReport.payments.reduce((acc, p) => acc + parseFloat(p.amount), 0).toFixed(2)}
+                                </div>
+                                <div className="text-xs text-salon-stone mt-1">Neste período</div>
+                            </div>
+                        </div>
+
+                        {/* Professionals Balance Table */}
+                        <div className="bg-salon-black/50 border border-salon-brown/30 rounded-xl overflow-hidden">
+                            <div className="p-4 border-b border-salon-brown/30 bg-salon-white/5">
+                                <h3 className="font-bold text-white">Carteira dos Profissionais</h3>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="text-xs text-salon-stone uppercase bg-salon-black/50">
+                                        <tr>
+                                            <th className="p-4">Profissional</th>
+                                            <th className="p-4 text-right">Comissão (%)</th>
+                                            <th className="p-4 text-right">Produção (R$)</th>
+                                            <th className="p-4 text-right">Comissão (R$)</th>
+                                            <th className="p-4 text-right">Pagos (Período)</th>
+                                            <th className="p-4 text-right">Saldo (Estimado)</th>
+                                            <th className="p-4 text-center">Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-salon-brown/20">
+                                        {professionals.filter(p => p.active !== false).map(pro => {
+                                            // Calculate Metrics for this Pro
+                                            // 1. Production (Service Price Total for this Pro)
+                                            const proBookings = financialReport.bookings.filter(b => b.professional_id === pro.id || b.professional_name === pro.name);
+                                            const production = proBookings.reduce((acc, b) => acc + (b.service_price || 0), 0);
+
+                                            // 2. Commission
+                                            const commissionRate = pro.commissionPercentage || 100;
+                                            const commission = production * (commissionRate / 100);
+
+                                            // 3. Payments (in this period)
+                                            const payments = financialReport.payments.filter(p => p.professional_id === pro.id).reduce((acc, p) => acc + parseFloat(p.amount), 0);
+
+                                            // 4. Balance (This is tricky because it depends on LIFETIME, not just this period. 
+                                            // But for now, user asked "Caixa para esses valores" implies period scope or accumulation. 
+                                            // Let's show "Saldo do Período" (Comissão - Pagos). 
+                                            // True Ledger requires fetching ALL history. 
+                                            // Only showing Period Balance for now to match Date Filter scope).
+                                            const balance = commission - payments;
+
+                                            return (
+                                                <tr key={pro.id} className="hover:bg-white/5 transition-colors">
+                                                    <td className="p-4 font-bold text-white">{pro.name}</td>
+                                                    <td className="p-4 text-right text-salon-stone">{commissionRate}%</td>
+                                                    <td className="p-4 text-right text-white">R$ {production.toFixed(2)}</td>
+                                                    <td className="p-4 text-right text-green-400 font-bold">R$ {commission.toFixed(2)}</td>
+                                                    <td className="p-4 text-right text-red-400">R$ {payments.toFixed(2)}</td>
+                                                    <td className={`p-4 text-right font-bold ${balance >= 0 ? 'text-blue-400' : 'text-red-500'}`}>
+                                                        R$ {balance.toFixed(2)}
+                                                    </td>
+                                                    <td className="p-4 text-center">
+                                                        <button
+                                                            onClick={() => {
+                                                                setPaymentProfessional(pro);
+                                                                setPaymentModalOpen(true);
+                                                            }}
+                                                            className="bg-salon-gold text-salon-black px-3 py-1 rounded text-sm font-bold hover:bg-white transition-colors"
+                                                        >
+                                                            Pagar
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* Recent Payments List */}
+                        <div className="bg-salon-black/50 border border-salon-brown/30 rounded-xl overflow-hidden">
+                            <div className="p-4 border-b border-salon-brown/30 bg-salon-white/5">
+                                <h3 className="font-bold text-white">Histórico de Pagamentos (Período)</h3>
+                            </div>
+                            {financialReport.payments.length === 0 ? (
+                                <div className="p-8 text-center text-salon-stone">Nenhum pagamento registrado neste período.</div>
+                            ) : (
+                                <div className="divide-y divide-salon-brown/20">
+                                    {financialReport.payments.map((payment) => {
+                                        const pro = professionals.find(p => p.id === payment.professional_id);
+                                        return (
+                                            <div key={payment.id} className="p-4 flex justify-between items-center hover:bg-white/5">
+                                                <div>
+                                                    <div className="font-bold text-white">{pro?.name || 'Profissional Removido'}</div>
+                                                    <div className="text-xs text-salon-stone">{new Date(payment.date).toLocaleDateString('pt-BR')} • {payment.note || 'Sem nota'}</div>
+                                                </div>
+                                                <div className="text-red-400 font-bold">- R$ {parseFloat(payment.amount).toFixed(2)}</div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Payment Modal */}
+            {paymentModalOpen && paymentProfessional && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-salon-black border border-salon-gold/30 rounded-2xl p-6 w-full max-w-sm shadow-2xl relative">
+                        <h3 className="text-xl font-bold text-white mb-2">Registrar Pagamento</h3>
+                        <p className="text-salon-stone mb-4">Para: <span className="text-white font-bold">{paymentProfessional.name}</span></p>
+
+                        <div className="space-y-4 mb-6">
+                            <div>
+                                <label className="block text-salon-stone text-sm mb-1">Valor (R$)</label>
+                                <input
+                                    type="number"
+                                    value={paymentAmount}
+                                    onChange={(e) => setPaymentAmount(e.target.value)}
+                                    className="w-full bg-salon-black border border-salon-gold/50 rounded-lg p-3 text-white text-xl font-bold focus:border-salon-gold outline-none"
+                                    placeholder="0.00"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-salon-stone text-sm mb-1">Observação</label>
+                                <input
+                                    type="text"
+                                    value={paymentNote}
+                                    onChange={(e) => setPaymentNote(e.target.value)}
+                                    className="w-full bg-salon-black border border-salon-brown rounded-lg p-3 text-white focus:border-salon-gold outline-none"
+                                    placeholder="Ex: Adiantamento, Fechamento quinzenal..."
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button onClick={() => setPaymentModalOpen(false)} className="flex-1 py-3 rounded-lg text-salon-stone hover:bg-white/5 transition-colors">
+                                Cancelar
+                            </button>
+                            <button onClick={handleRegisterPayment} className="flex-1 bg-salon-gold text-salon-black py-3 rounded-lg font-bold hover:bg-white transition-colors">
+                                Confirmar Pagamento
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {
                 activeTab === 'style' && (
                     <div>
