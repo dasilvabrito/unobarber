@@ -37,11 +37,15 @@ export default function BookingForm({ slug }: { slug: string }) {
                     getSettings(slug)
                 ]);
                 setServices(servicesData.filter((s: any) => s.active !== false));
-                setProfessionals(professionalsData.filter((p: any) => p.active !== false));
 
-                // Store settings in valid way (e.g. extending existing state or new one)
-                // For now, we only need salonName. Let's add specific state for it or just use a ref/variable?
-                // Better to add a state for it.
+                const activePros = professionalsData.filter((p: any) => p.active !== false);
+                setProfessionals(activePros);
+
+                // Auto-select if only one professional
+                if (activePros.length === 1) {
+                    setSelectedProfessional(activePros[0].id);
+                }
+
                 setSalonName(settingsData.salonName || "Salao");
             } catch (error) {
                 console.error("Failed to fetch data");
