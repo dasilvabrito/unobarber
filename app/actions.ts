@@ -433,10 +433,30 @@ export async function getAvailableSlots(slug: string, date: string, duration?: s
     const end = parseInt(settings.endHour.split(':')[0]);
     const interval = settings.timeInterval || 30;
 
+    // Current Time Logic for Dynamic Blocking
+    const now = new Date();
+    // Adjust to Brazil time (UTC-3) roughly or rely on server time if deployed in region. 
+    // Ideally use a library but for now simple check:
+    // If date === now.toISOString().split('T')[0]
+    const todayStr = now.toISOString().split('T')[0];
+    let cutoffMinutes = -1;
+
+    if (date === todayStr) {
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        cutoffMinutes = currentMinutes + 30; // 30 minute buffer
+    }
+
     const slots = [];
     for (let h = start; h < end; h++) {
         for (let m = 0; m < 60; m += interval) {
             const timeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+
+            // Check blocking
+            const slotMinutes = h * 60 + m;
+            if (cutoffMinutes > -1 && slotMinutes < cutoffMinutes) {
+                continue; // Block past/soon slots
+            }
+
             const isTaken = dayBookings.some((b: any) => b.time === timeStr);
             if (!isTaken) slots.push(timeStr);
         }

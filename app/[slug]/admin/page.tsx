@@ -753,12 +753,12 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                 activeTab === 'financial' && (
                     <div className="space-y-8 animate-in fade-in duration-500">
                         {/* Header & Filter */}
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-salon-black/50 p-6 rounded-xl border border-salon-gold/20">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-salon-black/50 p-6 rounded-xl border border-salon-gold/20 print:border-none print:shadow-none print:bg-white print:p-0">
                             <div>
-                                <h2 className="text-2xl font-bold text-white mb-2">Relatório Financeiro</h2>
-                                <p className="text-salon-stone text-sm">Acompanhe comissões, faturamento e pagamentos.</p>
+                                <h2 className="text-2xl font-bold text-white mb-2 print:text-black">Relatório Financeiro</h2>
+                                <p className="text-salon-stone text-sm print:text-gray-600">Acompanhe comissões, faturamento e pagamentos.</p>
                             </div>
-                            <div className="flex gap-4 items-end">
+                            <div className="flex gap-4 items-end print:hidden">
                                 <div>
                                     <label className="block text-salon-stone text-xs mb-1">Início</label>
                                     <input
@@ -777,21 +777,27 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                         className="bg-salon-black border border-salon-brown rounded px-3 py-2 text-white outline-none focus:border-salon-gold"
                                     />
                                 </div>
+                                <button
+                                    onClick={() => window.print()}
+                                    className="bg-salon-gold/20 text-salon-gold px-4 py-2 rounded-lg hover:bg-salon-gold/30 transition-colors flex items-center gap-2 font-bold"
+                                >
+                                    🖨️ Imprimir
+                                </button>
                             </div>
                         </div>
 
                         {/* Summary Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="bg-salon-black border border-salon-brown/50 p-4 rounded-xl">
-                                <h3 className="text-salon-stone text-xs uppercase tracking-wider mb-2">Faturamento Total</h3>
-                                <div className="text-2xl font-bold text-green-400">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 print:grid-cols-4 print:gap-2">
+                            <div className="bg-salon-black border border-salon-brown/50 p-4 rounded-xl print:bg-white print:border-gray-200">
+                                <h3 className="text-salon-stone text-xs uppercase tracking-wider mb-2 print:text-gray-500">Faturamento Total</h3>
+                                <div className="text-2xl font-bold text-green-400 print:text-black">
                                     R$ {financialReport.bookings.reduce((acc, b) => acc + (b.service_price || 0) + (b.products_price || 0), 0).toFixed(2)}
                                 </div>
-                                <div className="text-xs text-salon-stone mt-1">Serviços + Produtos</div>
+                                <div className="text-xs text-salon-stone mt-1 print:text-gray-500">Serviços + Produtos</div>
                             </div>
-                            <div className="bg-salon-black border border-salon-brown/50 p-4 rounded-xl">
-                                <h3 className="text-salon-stone text-xs uppercase tracking-wider mb-2">Comissão Gerada</h3>
-                                <div className="text-2xl font-bold text-salon-gold">
+                            <div className="bg-salon-black border border-salon-brown/50 p-4 rounded-xl print:bg-white print:border-gray-200">
+                                <h3 className="text-salon-stone text-xs uppercase tracking-wider mb-2 print:text-gray-500">Comissão Gerada</h3>
+                                <div className="text-2xl font-bold text-salon-gold print:text-black">
                                     R$ {financialReport.bookings.reduce((acc, b) => {
                                         // Calculate commission based on snapshot or current pro settings
                                         // We fetched professionals with commission_percentage in getFinancialReport
@@ -802,32 +808,32 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                         return acc + commissionValue;
                                     }, 0).toFixed(2)}
                                 </div>
-                                <div className="text-xs text-salon-stone mt-1">Ref. aos Profissionais</div>
+                                <div className="text-xs text-salon-stone mt-1 print:text-gray-500">Ref. aos Profissionais</div>
                             </div>
-                            <div className="bg-salon-black border border-salon-brown/50 p-4 rounded-xl">
-                                <h3 className="text-salon-stone text-xs uppercase tracking-wider mb-2">Venda de Produtos</h3>
-                                <div className="text-2xl font-bold text-blue-400">
+                            <div className="bg-salon-black border border-salon-brown/50 p-4 rounded-xl print:bg-white print:border-gray-200">
+                                <h3 className="text-salon-stone text-xs uppercase tracking-wider mb-2 print:text-gray-500">Venda de Produtos</h3>
+                                <div className="text-2xl font-bold text-blue-400 print:text-black">
                                     R$ {financialReport.bookings.reduce((acc, b) => acc + (b.products_price || 0), 0).toFixed(2)}
                                 </div>
-                                <div className="text-xs text-salon-stone mt-1">100% Salão</div>
+                                <div className="text-xs text-salon-stone mt-1 print:text-gray-500">100% Salão</div>
                             </div>
-                            <div className="bg-salon-black border border-salon-brown/50 p-4 rounded-xl">
-                                <h3 className="text-salon-stone text-xs uppercase tracking-wider mb-2">Pagamentos Realizados</h3>
-                                <div className="text-2xl font-bold text-red-400">
+                            <div className="bg-salon-black border border-salon-brown/50 p-4 rounded-xl print:bg-white print:border-gray-200">
+                                <h3 className="text-salon-stone text-xs uppercase tracking-wider mb-2 print:text-gray-500">Pagamentos Realizados</h3>
+                                <div className="text-2xl font-bold text-red-400 print:text-black">
                                     R$ {financialReport.payments.reduce((acc, p) => acc + parseFloat(p.amount), 0).toFixed(2)}
                                 </div>
-                                <div className="text-xs text-salon-stone mt-1">Neste período</div>
+                                <div className="text-xs text-salon-stone mt-1 print:text-gray-500">Neste período</div>
                             </div>
                         </div>
 
                         {/* Professionals Balance Table */}
-                        <div className="bg-salon-black/50 border border-salon-brown/30 rounded-xl overflow-hidden">
-                            <div className="p-4 border-b border-salon-brown/30 bg-salon-white/5">
-                                <h3 className="font-bold text-white">Carteira dos Profissionais</h3>
+                        <div className="bg-salon-black/50 border border-salon-brown/30 rounded-xl overflow-hidden print:bg-white print:border-gray-200">
+                            <div className="p-4 border-b border-salon-brown/30 bg-salon-white/5 print:bg-gray-50 print:border-gray-200">
+                                <h3 className="font-bold text-white print:text-black">Carteira dos Profissionais</h3>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left">
-                                    <thead className="text-xs text-salon-stone uppercase bg-salon-black/50">
+                                    <thead className="text-xs text-salon-stone uppercase bg-salon-black/50 print:bg-gray-100 print:text-black">
                                         <tr>
                                             <th className="p-4">Profissional</th>
                                             <th className="p-4 text-right">Comissão (%)</th>
@@ -835,7 +841,7 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                             <th className="p-4 text-right">Comissão (R$)</th>
                                             <th className="p-4 text-right">Pagos (Período)</th>
                                             <th className="p-4 text-right">Saldo (Estimado)</th>
-                                            <th className="p-4 text-center">Ação</th>
+                                            <th className="p-4 text-center print:hidden">Ação</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-salon-brown/20">
