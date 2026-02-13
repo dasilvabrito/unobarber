@@ -1355,6 +1355,7 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                     name: formData.get('name'),
                                     specialty: formData.get('specialty'),
                                     bio: formData.get('bio'),
+                                    commissionPercentage: Number(formData.get('commission')) || 100,
                                     active: editingProfessional ? editingProfessional.active : true
                                 };
 
@@ -1382,6 +1383,18 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                         defaultValue={editingProfessional?.specialty || ''}
                                         className="w-full bg-salon-black border border-salon-brown rounded p-2 text-white"
                                         placeholder="Ex: Barba, Corte Infantil"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-salon-stone text-sm mb-1">Comissão (%)</label>
+                                    <input
+                                        type="number"
+                                        name="commission"
+                                        defaultValue={editingProfessional?.commissionPercentage || 100}
+                                        min="0"
+                                        max="100"
+                                        className="w-full bg-salon-black border border-salon-brown rounded p-2 text-white"
+                                        required
                                     />
                                 </div>
                                 <div>
