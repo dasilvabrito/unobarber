@@ -866,22 +866,28 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                             const balance = commission - payments;
 
                                             return (
-                                                <tr key={pro.id} className="hover:bg-white/5 transition-colors">
-                                                    <td className="p-4 font-bold text-white">{pro.name}</td>
-                                                    <td className="p-4 text-right text-salon-stone">{commissionRate}%</td>
-                                                    <td className="p-4 text-right text-white">R$ {production.toFixed(2)}</td>
-                                                    <td className="p-4 text-right text-green-400 font-bold">R$ {commission.toFixed(2)}</td>
-                                                    <td className="p-4 text-right text-red-400">R$ {payments.toFixed(2)}</td>
-                                                    <td className={`p-4 text-right font-bold ${balance >= 0 ? 'text-blue-400' : 'text-red-500'}`}>
+                                                <tr key={pro.id} className="hover:bg-salon-white/5 transition-colors print:text-black">
+                                                    <td className="p-4 font-medium text-white print:text-black">{pro.name}</td>
+                                                    <td className="p-4 text-right text-salon-stone print:text-black">{commissionRate}%</td>
+                                                    <td className="p-4 text-right font-mono text-white print:text-black">
+                                                        R$ {production.toFixed(2)}
+                                                    </td>
+                                                    <td className="p-4 text-right font-mono text-salon-gold font-bold print:text-black">
+                                                        R$ {commission.toFixed(2)}
+                                                    </td>
+                                                    <td className="p-4 text-right font-mono text-red-400 print:text-black">
+                                                        R$ {payments.toFixed(2)}
+                                                    </td>
+                                                    <td className={`p-4 text-right font-mono font-bold ${balance >= 0 ? 'text-blue-400' : 'text-red-500'} print:text-black`}>
                                                         R$ {balance.toFixed(2)}
                                                     </td>
-                                                    <td className="p-4 text-center">
+                                                    <td className="p-4 text-center print:hidden">
                                                         <button
                                                             onClick={() => {
                                                                 setPaymentProfessional(pro);
                                                                 setPaymentModalOpen(true);
                                                             }}
-                                                            className="bg-salon-gold text-salon-black px-3 py-1 rounded text-sm font-bold hover:bg-white transition-colors"
+                                                            className="text-xs bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded"
                                                         >
                                                             Pagar
                                                         </button>
