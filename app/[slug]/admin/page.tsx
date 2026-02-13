@@ -140,10 +140,11 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                     ...b,
                     status: 'completed',
                     service: { ...b.service, price: finishPrice }, // Update local price for immediate feedback
-                    followUp: {
-                        scheduledDate: new Date(Date.now() + days * 24 * 60 * 1000).toISOString().split('T')[0],
-                        days: days
-                    }
+                    followUp: days > 0 ? {
+                        scheduledDate: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        days: days,
+                        sent: false
+                    } : null
                 }
                 : b
         ));
@@ -164,17 +165,15 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
         return `https://wa.me/55${phone}?text=${encodeURIComponent(text)}`;
     };
 
-    const handleDismissFollowUp = (bookingId: string) => {
+    const handleDismissFollowUp = async (bookingId: string) => {
         // Optimistic update: remove from current view
-        // In a real app, you might want to mark as 'contacted' in DB, 
-        // but for now, hiding it from the list is enough as per request.
-        // We can use a local state 'contactedBookings' to filter them out.
-        // Or just update the Booking object locally to set followUp.sent = true
-
         const newBookings = bookings.map(b =>
             b.id === bookingId ? { ...b, followUp: { ...b.followUp, sent: true } } : b
         );
         setBookings(newBookings);
+
+        const { dismissFollowUp } = await import('@/app/actions');
+        await dismissFollowUp(slug, bookingId);
     };
 
     // Fetch Subscription & Financial Data
@@ -567,15 +566,24 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                                 <div className="font-bold text-white">{booking.client.name}</div>
                                                 <div className="text-sm text-blue-300">Último corte: {new Date(booking.date).toLocaleDateString('pt-BR')} ({booking.followUp?.days} dias atrás)</div>
                                             </div>
-                                            <a
-                                                href={generateWhatsAppLink(booking)}
-                                                target="_blank"
-                                                onClick={() => handleDismissFollowUp(booking.id)}
-                                                className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-600 transition-all flex items-center gap-2 text-sm shadow-lg shadow-green-500/20"
-                                            >
-                                                <span>Enviar WhatsApp</span>
-                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.506-.669-.516l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" /></svg>
-                                            </a>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleDismissFollowUp(booking.id)}
+                                                    className="bg-white/10 text-white px-3 py-2 rounded-lg hover:bg-white/20 transition-all text-sm"
+                                                    title="Dispensar Aviso"
+                                                >
+                                                    ✕
+                                                </button>
+                                                <a
+                                                    href={generateWhatsAppLink(booking)}
+                                                    target="_blank"
+                                                    onClick={() => handleDismissFollowUp(booking.id)}
+                                                    className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-600 transition-all flex items-center gap-2 text-sm shadow-lg shadow-green-500/20"
+                                                >
+                                                    <span>Enviar WhatsApp</span>
+                                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" /></svg>
+                                                </a>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -710,20 +718,20 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                             </div>
 
                             <div className="grid grid-cols-1 gap-3 mb-6">
-                                <button onClick={() => handleComplete(20)} className="bg-salon-gold/10 hover:bg-salon-gold hover:text-black border border-salon-gold/30 text-salon-gold py-3 rounded-xl transition-all font-bold text-left px-4">
-                                    📅 Daqui 20 Dias
-                                    <div className="text-xs font-normal opacity-70">Para cortes curtos / degradê</div>
-                                </button>
-                                <button onClick={() => handleComplete(25)} className="bg-salon-gold/10 hover:bg-salon-gold hover:text-black border border-salon-gold/30 text-salon-gold py-3 rounded-xl transition-all font-bold text-left px-4">
-                                    📅 Daqui 25 Dias
-                                    <div className="text-xs font-normal opacity-70">Manutenção padrão</div>
-                                </button>
-                                <button onClick={() => handleComplete(30)} className="bg-salon-gold/10 hover:bg-salon-gold hover:text-black border border-salon-gold/30 text-salon-gold py-3 rounded-xl transition-all font-bold text-left px-4">
-                                    📅 Daqui 30 Dias
-                                    <div className="text-xs font-normal opacity-70">Cabelos mais longos</div>
-                                </button>
-                                <button onClick={() => handleComplete(0)} className="bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl transition-all border border-white/10">
-                                    🚫 Encerrar sem Lembrete
+                                <p className="text-xs text-salon-stone font-bold uppercase tracking-wider mb-2">Agendar Retorno (Lembrete)</p>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <button onClick={() => handleComplete(20)} className="bg-salon-gold/10 hover:bg-salon-gold hover:text-black border border-salon-gold/30 text-salon-gold py-2 rounded-lg transition-all font-bold text-sm">
+                                        20 Dias
+                                    </button>
+                                    <button onClick={() => handleComplete(25)} className="bg-salon-gold/10 hover:bg-salon-gold hover:text-black border border-salon-gold/30 text-salon-gold py-2 rounded-lg transition-all font-bold text-sm">
+                                        25 Dias
+                                    </button>
+                                    <button onClick={() => handleComplete(30)} className="bg-salon-gold/10 hover:bg-salon-gold hover:text-black border border-salon-gold/30 text-salon-gold py-2 rounded-lg transition-all font-bold text-sm">
+                                        30 Dias
+                                    </button>
+                                </div>
+                                <button onClick={() => handleComplete(0)} className="mt-2 w-full bg-white/5 hover:bg-white/10 text-white py-3 rounded-lg transition-all border border-white/10 text-sm">
+                                    Encerrar sem Agendar Retorno
                                 </button>
                             </div>
 

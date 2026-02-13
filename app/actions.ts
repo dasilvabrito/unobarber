@@ -174,7 +174,11 @@ export async function getBookings(slug: string) {
         status: b.status,
         createdAt: b.created_at,
         // Mock followUp 
-        followUp: { sent: false, days: 30, scheduledDate: '2025-01-01' }
+        followUp: b.follow_up_date ? {
+            sent: b.follow_up_sent || false,
+            days: Math.round((new Date(b.follow_up_date).getTime() - new Date(b.date).getTime()) / (1000 * 60 * 60 * 24)),
+            scheduledDate: b.follow_up_date
+        } : null
     }));
 }
 
@@ -230,6 +234,20 @@ export async function completeBooking(slug: string, bookingId: string, days?: nu
     // If a final price is provided, update the service snapshot price
     if (finalPrice !== undefined) {
         updateData.service_price = finalPrice;
+    }
+
+    // If days are provided, calculate and scheduled follow up
+    if (days !== undefined) {
+        if (days > 0) {
+            const today = new Date();
+            const followUpDate = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
+            updateData.follow_up_date = followUpDate.toISOString().split('T')[0];
+            updateData.follow_up_sent = false;
+        } else {
+            // If days is 0 (or negative), we assume "No Reminder", so we clear any existing follow-up
+            updateData.follow_up_date = null;
+            updateData.follow_up_sent = false;
+        }
     }
 
     const { error } = await supabase
@@ -297,6 +315,21 @@ export async function deleteProfessional(slug: string, id: string) {
         .eq('tenant_slug', slug);
 
     if (error) return { success: false, message: "Erro ao deletar." };
+    return { success: true };
+}
+
+export async function dismissFollowUp(slug: string, bookingId: string) {
+    const { error } = await supabase
+        .from('bookings')
+        .update({ follow_up_sent: true })
+        .eq('id', bookingId)
+        .eq('tenant_slug', slug);
+
+    if (error) {
+        console.error("Failed to dismiss follow up", error);
+        return { success: false };
+    }
+    revalidatePath(`/${slug}/admin`);
     return { success: true };
 }
 
