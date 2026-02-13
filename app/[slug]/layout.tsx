@@ -1,6 +1,18 @@
 import ThemeRegistry from "@/components/ThemeRegistry";
 import Footer from "@/components/Footer";
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+    const { slug } = await params;
+    const { getSettings } = await import('@/app/actions');
+    const settings = await getSettings(slug);
+
+    return {
+        title: settings.salonName || "Agendamento",
+        description: settings.slogan || "Agende seu horário.",
+    };
+}
 
 export default async function TenantLayout({
     children,
