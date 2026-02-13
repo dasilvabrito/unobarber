@@ -8,7 +8,7 @@ export default async function Home({ params }: { params: Promise<{ slug: string 
   const settings = await getSettings(slug);
 
   return (
-    <main className="min-h-screen text-white pb-20 bg-salon-black">
+    <main className="min-h-screen text-white pb-20 bg-[#050505]">
       <Header slug={slug} />
 
       <div className="pt-32 container mx-auto px-4">
