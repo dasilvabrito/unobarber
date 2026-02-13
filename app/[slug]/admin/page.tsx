@@ -1502,329 +1502,157 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                     )
                 }
 
-                {
-                    activeTab === 'financial' && (
-                        <div className="space-y-8">
-                            <div className="flex justify-between items-center">
-                                <h2 className="text-2xl font-bold text-white">Relatórios Financeiros</h2>
-                                <input
-                                    type="month"
-                                    value={financialMonth}
-                                    onChange={(e) => setFinancialMonth(e.target.value)}
-                                    className="bg-salon-black border border-salon-brown rounded-lg p-2 text-white outline-none focus:border-salon-gold"
-                                />
-                            </div>
 
-                            {/* Stats Cards */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {(() => {
-                                    // Calculate Stats
-                                    const filteredBookings = bookings.filter(b => b.date.startsWith(financialMonth));
-                                    const completedBookings = filteredBookings.filter(b => b.status === 'completed');
+            </div>
 
-                                    const totalRevenue = completedBookings.reduce((acc, b) => {
-                                        // Extract price from service (simplified, assuming service object is full)
-                                        const price = b.service?.price || 0;
-                                        return acc + price;
-                                    }, 0);
-                                    const avgTicket = completedBookings.length > 0 ? totalRevenue / completedBookings.length : 0;
-
-                                    return (
-                                        <>
-                                            <div className="bg-salon-black border border-salon-gold/30 p-6 rounded-xl">
-                                                <h3 className="text-salon-stone text-sm uppercase tracking-wider mb-2">Faturamento Total</h3>
-                                                <p className="text-3xl font-bold text-green-400">R$ {totalRevenue.toFixed(2)}</p>
-                                                <p className="text-xs text-salon-stone mt-1">{completedBookings.length} atendimentos concluídos</p>
-                                            </div>
-                                            <div className="bg-salon-black border border-salon-gold/30 p-6 rounded-xl">
-                                                <h3 className="text-salon-stone text-sm uppercase tracking-wider mb-2">Ticket Médio</h3>
-                                                <p className="text-3xl font-bold text-salon-gold">R$ {avgTicket.toFixed(2)}</p>
-                                            </div>
-                                            <div className="bg-salon-black border border-salon-gold/30 p-6 rounded-xl">
-                                                <h3 className="text-salon-stone text-sm uppercase tracking-wider mb-2">Projeção (Agendados)</h3>
-                                                <p className="text-3xl font-bold text-white">
-                                                    R$ {filteredBookings.filter(b => b.status === 'confirmed').reduce((acc, b) => acc + (b.service?.price || 0), 0).toFixed(2)}
-                                                </p>
-                                                <p className="text-xs text-salon-stone mt-1">Em agendamentos futuros</p>
-                                            </div>
-                                        </>
-                                    );
-                                })()}
-                            </div>
-
-                            {/* Subscription Section */}
-                            <div className="bg-salon-black/80 border border-salon-gold/30 p-6 rounded-xl">
-                                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                                    💎 Sua Assinatura
-                                    {subscriptionData && (
-                                        <span className={`text-xs px-2 py-0.5 rounded border ${new Date(subscriptionData.license.expiration) > new Date() ? 'bg-green-500/20 text-green-400 border-green-500/20' : 'bg-red-500/20 text-red-400 border-red-500/20'}`}>
-                                            {new Date(subscriptionData.license.expiration) > new Date() ? 'ATIVA' : 'EXPIRADA'}
-                                        </span>
-                                    )}
-                                </h2>
-
-                                {subscriptionData ? (
-                                    <div className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="p-4 bg-salon-black border border-salon-brown/30 rounded-lg">
-                                                <p className="text-salon-stone text-sm">Plano Atual</p>
-                                                <p className="text-xl font-bold text-white">
-                                                    {subscriptionData.license.plan === 'pro' ? 'UnoBarber PRO' : 'Gratuito'}
-                                                </p>
-                                            </div>
-                                            <div className="p-4 bg-salon-black border border-salon-brown/30 rounded-lg">
-                                                <p className="text-salon-stone text-sm">Válido Até</p>
-                                                <p className="text-xl font-bold text-salon-gold">
-                                                    {new Date(subscriptionData.license.expiration).toLocaleDateString('pt-BR')}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <h3 className="text-lg font-bold text-white mb-3">Histórico de Pagamentos</h3>
-                                            <div className="overflow-x-auto">
-                                                <table className="w-full text-left text-sm text-salon-stone">
-                                                    <thead className="border-b border-salon-brown/30 text-salon-gold uppercase text-xs">
-                                                        <tr>
-                                                            <th className="py-2">Data</th>
-                                                            <th className="py-2">Descrição</th>
-                                                            <th className="py-2">Valor</th>
-                                                            <th className="py-2">Status</th>
-                                                            <th className="py-2">Ações</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-salon-brown/10">
-                                                        {subscriptionData.history && subscriptionData.history.length > 0 ? (
-                                                            subscriptionData.history.map((payment: any) => (
-                                                                <tr key={payment.id} className="hover:bg-white/5 transition-colors">
-                                                                    <td className="py-3">{new Date(payment.date).toLocaleDateString('pt-BR')}</td>
-                                                                    <td className="py-3">{payment.description}</td>
-                                                                    <td className="py-3">R$ {payment.value.toFixed(2)}</td>
-                                                                    <td className="py-3">
-                                                                        <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold
-                                                                        ${payment.status === 'RECEIVED' || payment.status === 'CONFIRMED' ? 'bg-green-500/20 text-green-400' :
-                                                                                payment.status === 'OVERDUE' ? 'bg-red-500/20 text-red-400' :
-                                                                                    'bg-yellow-500/20 text-yellow-400'}`}>
-                                                                            {payment.status}
-                                                                        </span>
-                                                                    </td>
-                                                                    <td className="py-3">
-                                                                        {payment.invoiceUrl && (
-                                                                            <a href={payment.invoiceUrl} target="_blank" className="text-salon-gold hover:underline">
-                                                                                Ver Fatura
-                                                                            </a>
-                                                                        )}
-                                                                    </td>
-                                                                </tr>
-                                                            ))
-                                                        ) : (
-                                                            <tr>
-                                                                <td colSpan={5} className="py-4 text-center italic opacity-50">Nenhum pagamento registrado.</td>
-                                                            </tr>
-                                                        )}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-8">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-salon-gold mx-auto mb-2"></div>
-                                        <p className="text-salon-stone text-sm">Carregando informações da assinatura...</p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Revenue by Professional */}
-                            <div className="bg-salon-black/50 border border-salon-brown/30 rounded-xl p-6">
-                                <h3 className="text-xl font-bold text-white mb-6">Faturamento por Profissional</h3>
-                                <div className="space-y-4">
-                                    {(() => {
-                                        const revenueByPro: Record<string, number> = {};
-                                        const countByPro: Record<string, number> = {};
-
-                                        bookings
-                                            .filter(b => b.date.startsWith(financialMonth)) // Filter by Month
-                                            .filter(b => b.status === 'completed')
-                                            .forEach(b => {
-                                                const proName = b.professionalName || 'Não Atribuído';
-                                                const price = b.service?.price || 0;
-                                                revenueByPro[proName] = (revenueByPro[proName] || 0) + price;
-                                                countByPro[proName] = (countByPro[proName] || 0) + 1;
-                                            });
-
-                                        const sortedPros = Object.entries(revenueByPro).sort(([, a], [, b]) => b - a);
-                                        const maxRevenue = Math.max(...Object.values(revenueByPro), 1); // Avoid div by zero
-
-                                        return sortedPros.map(([name, revenue]) => (
-                                            <div key={name} className="space-y-2">
-                                                <div className="flex justify-between text-sm">
-                                                    <span className="text-white font-bold">{name}</span>
-                                                    <span className="text-salon-gold">R$ {revenue.toFixed(2)} ({countByPro[name]} cortes)</span>
-                                                </div>
-                                                <div className="w-full bg-salon-brown/20 rounded-full h-2 overflow-hidden">
-                                                    <div
-                                                        className="bg-salon-gold h-full rounded-full transition-all"
-                                                        style={{ width: `${(revenue / maxRevenue) * 100}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                        ));
-                                    })()}
-                                    {Object.keys(bookings).length === 0 && <p className="text-salon-stone">Nenhum dado financeiro disponível.</p>}
-                                </div>
-                            </div>
+            {/* Statement Modal */}
+            {statementProfessional && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 print:relative print:bg-white print:p-0 print:block">
+                    <div className="bg-salon-black border border-salon-gold/20 p-6 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto print:border-none print:shadow-none print:bg-white print:max-w-none print:max-h-none print:overflow-visible">
+                        <div className="flex justify-between items-center mb-6 print:hidden">
+                            <h2 className="text-xl font-bold text-white">Extrato Detalhado</h2>
+                            <button onClick={() => setStatementProfessional(null)} className="text-salon-stone hover:text-white">✕</button>
                         </div>
-                    )
-                }
-                {/* Statement Modal */}
-                {statementProfessional && (
-                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 print:relative print:bg-white print:p-0 print:block">
-                        <div className="bg-salon-black border border-salon-gold/20 p-6 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto print:border-none print:shadow-none print:bg-white print:max-w-none print:max-h-none print:overflow-visible">
-                            <div className="flex justify-between items-center mb-6 print:hidden">
-                                <h2 className="text-xl font-bold text-white">Extrato Detalhado</h2>
-                                <button onClick={() => setStatementProfessional(null)} className="text-salon-stone hover:text-white">✕</button>
+
+                        <div className="print:block">
+                            <div className="text-center mb-8 border-b border-gray-200 pb-4">
+                                <h1 className="text-2xl font-bold text-white print:text-black mb-1">{statementProfessional.name}</h1>
+                                <p className="text-salon-stone print:text-gray-600 text-sm">
+                                    Extrato de Período: {new Date(financialStartDate).toLocaleDateString()} até {new Date(financialEndDate).toLocaleDateString()}
+                                </p>
                             </div>
 
-                            <div className="print:block">
-                                <div className="text-center mb-8 border-b border-gray-200 pb-4">
-                                    <h1 className="text-2xl font-bold text-white print:text-black mb-1">{statementProfessional.name}</h1>
-                                    <p className="text-salon-stone print:text-gray-600 text-sm">
-                                        Extrato de Período: {new Date(financialStartDate).toLocaleDateString()} até {new Date(financialEndDate).toLocaleDateString()}
-                                    </p>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 print:grid-cols-2">
-                                    {/* CREDITS SECTION */}
-                                    <div>
-                                        <h3 className="text-lg font-bold text-green-400 print:text-black border-b border-green-400/30 pb-2 mb-4">
-                                            Créditos (Comissões)
-                                        </h3>
-                                        <table className="w-full text-sm text-left">
-                                            <thead className="text-xs text-salon-stone uppercase border-b border-white/10 print:text-gray-500 print:border-gray-300">
-                                                <tr>
-                                                    <th className="py-2">Data</th>
-                                                    <th className="py-2">Serviço/Cliente</th>
-                                                    <th className="py-2 text-right">Valor</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-white/10 print:divide-gray-200">
-                                                {financialReport.bookings
-                                                    .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
-                                                    .map(b => {
-                                                        const commissionRate = statementProfessional.commissionPercentage || 100;
-                                                        const commission = (b.service_price || 0) * (commissionRate / 100);
-                                                        return (
-                                                            <tr key={b.id}>
-                                                                <td className="py-2 text-salon-stone print:text-gray-700">{new Date(b.date).toLocaleDateString()}</td>
-                                                                <td className="py-2 text-white print:text-black">
-                                                                    <div>{b.service?.name}</div>
-                                                                    <div className="text-xs text-salon-stone">{b.customerName}</div>
-                                                                </td>
-                                                                <td className="py-2 text-right text-green-400 print:text-black">R$ {commission.toFixed(2)}</td>
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                {financialReport.bookings.filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name).length === 0 && (
-                                                    <tr>
-                                                        <td colSpan={3} className="py-4 text-center text-salon-stone">Nenhum serviço neste período.</td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                            <tfoot className="border-t border-white/20 print:border-gray-300 font-bold">
-                                                <tr>
-                                                    <td colSpan={2} className="py-3 text-white print:text-black">Total Créditos</td>
-                                                    <td className="py-3 text-right text-green-400 print:text-black">
-                                                        R$ {financialReport.bookings
-                                                            .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
-                                                            .reduce((acc, b) => acc + ((b.service_price || 0) * ((statementProfessional.commissionPercentage || 100) / 100)), 0)
-                                                            .toFixed(2)}
-                                                    </td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-
-                                    {/* DEBITS SECTION */}
-                                    <div>
-                                        <h3 className="text-lg font-bold text-red-400 print:text-black border-b border-red-400/30 pb-2 mb-4">
-                                            Débitos (Pagamentos/Adiantamentos)
-                                        </h3>
-                                        <table className="w-full text-sm text-left">
-                                            <thead className="text-xs text-salon-stone uppercase border-b border-white/10 print:text-gray-500 print:border-gray-300">
-                                                <tr>
-                                                    <th className="py-2">Data</th>
-                                                    <th className="py-2">Descrição</th>
-                                                    <th className="py-2 text-right">Valor</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-white/10 print:divide-gray-200">
-                                                {financialReport.payments
-                                                    .filter(p => p.professional_id === statementProfessional.id)
-                                                    .map(p => (
-                                                        <tr key={p.id}>
-                                                            <td className="py-2 text-salon-stone print:text-gray-700">{new Date(p.date).toLocaleDateString()}</td>
-                                                            <td className="py-2 text-white print:text-black">{p.note || 'Pagamento'}</td>
-                                                            <td className="py-2 text-right text-red-400 print:text-black">R$ {parseFloat(p.amount).toFixed(2)}</td>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 print:grid-cols-2">
+                                {/* CREDITS SECTION */}
+                                <div>
+                                    <h3 className="text-lg font-bold text-green-400 print:text-black border-b border-green-400/30 pb-2 mb-4">
+                                        Créditos (Comissões)
+                                    </h3>
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="text-xs text-salon-stone uppercase border-b border-white/10 print:text-gray-500 print:border-gray-300">
+                                            <tr>
+                                                <th className="py-2">Data</th>
+                                                <th className="py-2">Serviço/Cliente</th>
+                                                <th className="py-2 text-right">Valor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/10 print:divide-gray-200">
+                                            {financialReport.bookings
+                                                .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
+                                                .map(b => {
+                                                    const commissionRate = statementProfessional.commissionPercentage || 100;
+                                                    const commission = (b.service_price || 0) * (commissionRate / 100);
+                                                    return (
+                                                        <tr key={b.id}>
+                                                            <td className="py-2 text-salon-stone print:text-gray-700">{new Date(b.date).toLocaleDateString()}</td>
+                                                            <td className="py-2 text-white print:text-black">
+                                                                <div>{b.service?.name}</div>
+                                                                <div className="text-xs text-salon-stone">{b.customerName}</div>
+                                                            </td>
+                                                            <td className="py-2 text-right text-green-400 print:text-black">R$ {commission.toFixed(2)}</td>
                                                         </tr>
-                                                    ))}
-                                                {financialReport.payments.filter(p => p.professional_id === statementProfessional.id).length === 0 && (
-                                                    <tr>
-                                                        <td colSpan={3} className="py-4 text-center text-salon-stone">Nenhum pagamento desete período.</td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                            <tfoot className="border-t border-white/20 print:border-gray-300 font-bold">
+                                                    );
+                                                })}
+                                            {financialReport.bookings.filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name).length === 0 && (
                                                 <tr>
-                                                    <td colSpan={2} className="py-3 text-white print:text-black">Total Débitos</td>
-                                                    <td className="py-3 text-right text-red-400 print:text-black">
-                                                        R$ {financialReport.payments
-                                                            .filter(p => p.professional_id === statementProfessional.id)
-                                                            .reduce((acc, p) => acc + parseFloat(p.amount), 0)
-                                                            .toFixed(2)}
-                                                    </td>
+                                                    <td colSpan={3} className="py-4 text-center text-salon-stone">Nenhum serviço neste período.</td>
                                                 </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
+                                            )}
+                                        </tbody>
+                                        <tfoot className="border-t border-white/20 print:border-gray-300 font-bold">
+                                            <tr>
+                                                <td colSpan={2} className="py-3 text-white print:text-black">Total Créditos</td>
+                                                <td className="py-3 text-right text-green-400 print:text-black">
+                                                    R$ {financialReport.bookings
+                                                        .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
+                                                        .reduce((acc, b) => acc + ((b.service_price || 0) * ((statementProfessional.commissionPercentage || 100) / 100)), 0)
+                                                        .toFixed(2)}
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
                                 </div>
 
-                                <div className="mt-8 pt-4 border-t border-salon-gold/30 print:border-black flex justify-between items-center bg-salon-white/5 p-4 rounded-xl print:bg-gray-100">
-                                    <div className="text-lg text-white print:text-black">Saldo Final do Período</div>
-                                    <div className={`text-3xl font-bold print:text-black ${(financialReport.bookings
+                                {/* DEBITS SECTION */}
+                                <div>
+                                    <h3 className="text-lg font-bold text-red-400 print:text-black border-b border-red-400/30 pb-2 mb-4">
+                                        Débitos (Pagamentos/Adiantamentos)
+                                    </h3>
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="text-xs text-salon-stone uppercase border-b border-white/10 print:text-gray-500 print:border-gray-300">
+                                            <tr>
+                                                <th className="py-2">Data</th>
+                                                <th className="py-2">Descrição</th>
+                                                <th className="py-2 text-right">Valor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/10 print:divide-gray-200">
+                                            {financialReport.payments
+                                                .filter(p => p.professional_id === statementProfessional.id)
+                                                .map(p => (
+                                                    <tr key={p.id}>
+                                                        <td className="py-2 text-salon-stone print:text-gray-700">{new Date(p.date).toLocaleDateString()}</td>
+                                                        <td className="py-2 text-white print:text-black">{p.note || 'Pagamento'}</td>
+                                                        <td className="py-2 text-right text-red-400 print:text-black">R$ {parseFloat(p.amount).toFixed(2)}</td>
+                                                    </tr>
+                                                ))}
+                                            {financialReport.payments.filter(p => p.professional_id === statementProfessional.id).length === 0 && (
+                                                <tr>
+                                                    <td colSpan={3} className="py-4 text-center text-salon-stone">Nenhum pagamento desete período.</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                        <tfoot className="border-t border-white/20 print:border-gray-300 font-bold">
+                                            <tr>
+                                                <td colSpan={2} className="py-3 text-white print:text-black">Total Débitos</td>
+                                                <td className="py-3 text-right text-red-400 print:text-black">
+                                                    R$ {financialReport.payments
+                                                        .filter(p => p.professional_id === statementProfessional.id)
+                                                        .reduce((acc, p) => acc + parseFloat(p.amount), 0)
+                                                        .toFixed(2)}
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 pt-4 border-t border-salon-gold/30 print:border-black flex justify-between items-center bg-salon-white/5 p-4 rounded-xl print:bg-gray-100">
+                                <div className="text-lg text-white print:text-black">Saldo Final do Período</div>
+                                <div className={`text-3xl font-bold print:text-black ${(financialReport.bookings
+                                    .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
+                                    .reduce((acc, b) => acc + ((b.service_price || 0) * ((statementProfessional.commissionPercentage || 100) / 100)), 0) -
+                                    financialReport.payments
+                                        .filter(p => p.professional_id === statementProfessional.id)
+                                        .reduce((acc, p) => acc + parseFloat(p.amount), 0)) >= 0 ? 'text-blue-400' : 'text-red-500'
+                                    }`}>
+                                    R$ {(financialReport.bookings
                                         .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
                                         .reduce((acc, b) => acc + ((b.service_price || 0) * ((statementProfessional.commissionPercentage || 100) / 100)), 0) -
                                         financialReport.payments
                                             .filter(p => p.professional_id === statementProfessional.id)
-                                            .reduce((acc, p) => acc + parseFloat(p.amount), 0)) >= 0 ? 'text-blue-400' : 'text-red-500'
-                                        }`}>
-                                        R$ {(financialReport.bookings
-                                            .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
-                                            .reduce((acc, b) => acc + ((b.service_price || 0) * ((statementProfessional.commissionPercentage || 100) / 100)), 0) -
-                                            financialReport.payments
-                                                .filter(p => p.professional_id === statementProfessional.id)
-                                                .reduce((acc, p) => acc + parseFloat(p.amount), 0)).toFixed(2)}
-                                    </div>
+                                            .reduce((acc, p) => acc + parseFloat(p.amount), 0)).toFixed(2)}
                                 </div>
+                            </div>
 
-                                <div className="mt-8 flex justify-end gap-4 print:hidden">
-                                    <button
-                                        onClick={() => setStatementProfessional(null)}
-                                        className="px-4 py-2 rounded text-salon-stone hover:bg-white/10 transition-colors"
-                                    >
-                                        Fechar
-                                    </button>
-                                    <button
-                                        onClick={() => window.print()}
-                                        className="bg-salon-gold text-salon-black px-6 py-2 rounded font-bold hover:bg-white transition-colors"
-                                    >
-                                        🖨️ Imprimir Extrato
-                                    </button>
-                                </div>
+                            <div className="mt-8 flex justify-end gap-4 print:hidden">
+                                <button
+                                    onClick={() => setStatementProfessional(null)}
+                                    className="px-4 py-2 rounded text-salon-stone hover:bg-white/10 transition-colors"
+                                >
+                                    Fechar
+                                </button>
+                                <button
+                                    onClick={() => window.print()}
+                                    className="bg-salon-gold text-salon-black px-6 py-2 rounded font-bold hover:bg-white transition-colors"
+                                >
+                                    🖨️ Imprimir Extrato
+                                </button>
                             </div>
                         </div>
                     </div>
-                )}
-            </div>
-            );
+                </div>
+            )}
+        </div>
+    );
 }
