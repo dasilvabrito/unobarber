@@ -771,32 +771,12 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                     <h2 className="text-2xl font-bold text-white mb-2 print:text-black">Relatório Financeiro</h2>
                                     <p className="text-salon-stone text-sm print:text-gray-600">Acompanhe comissões, faturamento e pagamentos.</p>
                                 </div>
-                                <div className="flex gap-4 items-end print:hidden">
-                                    <div>
-                                        <label className="block text-salon-stone text-xs mb-1">Início</label>
-                                        <input
-                                            type="date"
-                                            value={financialStartDate}
-                                            onChange={(e) => setFinancialStartDate(e.target.value)}
-                                            className="bg-salon-black border border-salon-brown rounded px-3 py-2 text-white outline-none focus:border-salon-gold"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-salon-stone text-xs mb-1">Fim</label>
-                                        <input
-                                            type="date"
-                                            value={financialEndDate}
-                                            onChange={(e) => setFinancialEndDate(e.target.value)}
-                                            className="bg-salon-black border border-salon-brown rounded px-3 py-2 text-white outline-none focus:border-salon-gold"
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={() => window.print()}
-                                        className="bg-salon-gold/20 text-salon-gold px-4 py-2 rounded-lg hover:bg-salon-gold/30 transition-colors flex items-center gap-2 font-bold"
-                                    >
-                                        🖨️ Imprimir
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={() => window.print()}
+                                    className="bg-salon-gold/20 text-salon-gold px-4 py-2 rounded-lg hover:bg-salon-gold/30 transition-colors flex items-center gap-2 font-bold"
+                                >
+                                    🖨️ Imprimir
+                                </button>
                             </div>
 
                             {/* Summary Cards */}
@@ -1497,155 +1477,177 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
             </div>
 
             {/* Statement Modal */}
-            {statementProfessional && (
-                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 print:relative print:bg-white print:p-0 print:block">
-                    <div className="bg-salon-black border border-salon-gold/20 p-6 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto print:border-none print:shadow-none print:bg-white print:max-w-none print:max-h-none print:overflow-visible">
-                        <div className="flex justify-between items-center mb-6 print:hidden">
-                            <h2 className="text-xl font-bold text-white">Extrato Detalhado</h2>
-                            <button onClick={() => setStatementProfessional(null)} className="text-salon-stone hover:text-white">✕</button>
-                        </div>
-
-                        <div className="print:block">
-                            <div className="text-center mb-8 border-b border-gray-200 pb-4">
-                                <h1 className="text-2xl font-bold text-white print:text-black mb-1">{statementProfessional.name}</h1>
-                                <p className="text-salon-stone print:text-gray-600 text-sm">
-                                    Extrato de Período: {new Date(financialStartDate).toLocaleDateString()} até {new Date(financialEndDate).toLocaleDateString()}
-                                </p>
+            {
+                statementProfessional && (
+                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 print:relative print:bg-white print:p-0 print:block">
+                        <div className="bg-salon-black border border-salon-gold/20 p-6 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto print:border-none print:shadow-none print:bg-white print:max-w-none print:max-h-none print:overflow-visible">
+                            <div className="flex justify-between items-center mb-6 print:hidden">
+                                <h2 className="text-xl font-bold text-white">Extrato Detalhado</h2>
+                                <div className="flex gap-4 items-end">
+                                    <div>
+                                        <label className="block text-salon-stone text-xs mb-1">Início</label>
+                                        <input
+                                            type="date"
+                                            value={financialStartDate}
+                                            onChange={(e) => setFinancialStartDate(e.target.value)}
+                                            className="bg-salon-black border border-salon-brown rounded px-3 py-1 text-white outline-none focus:border-salon-gold text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-salon-stone text-xs mb-1">Fim</label>
+                                        <input
+                                            type="date"
+                                            value={financialEndDate}
+                                            onChange={(e) => setFinancialEndDate(e.target.value)}
+                                            className="bg-salon-black border border-salon-brown rounded px-3 py-1 text-white outline-none focus:border-salon-gold text-sm"
+                                        />
+                                    </div>
+                                </div>
+                                <button onClick={() => setStatementProfessional(null)} className="text-salon-stone hover:text-white">✕</button>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 print:grid-cols-2">
-                                {/* CREDITS SECTION */}
-                                <div>
-                                    <h3 className="text-lg font-bold text-green-400 print:text-black border-b border-green-400/30 pb-2 mb-4">
-                                        Créditos (Comissões)
-                                    </h3>
-                                    <table className="w-full text-sm text-left">
-                                        <thead className="text-xs text-salon-stone uppercase border-b border-white/10 print:text-gray-500 print:border-gray-300">
-                                            <tr>
-                                                <th className="py-1 print:py-0">Data</th>
-                                                <th className="py-1 print:py-0">Serviço/Cliente</th>
-                                                <th className="py-1 text-right print:py-0">Valor</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-white/10 print:divide-gray-200">
-                                            {financialReport.bookings
-                                                .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
-                                                .map(b => {
-                                                    const commissionRate = statementProfessional.commissionPercentage || 100;
-                                                    const commission = (b.service_price || 0) * (commissionRate / 100);
-                                                    return (
-                                                        <tr key={b.id}>
-                                                            <td className="py-1 text-salon-stone print:text-gray-700 print:text-xs">{new Date(b.date).toLocaleDateString()}</td>
-                                                            <td className="py-1 text-white print:text-black print:text-xs">
-                                                                <div className="font-bold">{b.service_title || b.service?.title}</div>
-                                                                <div className="text-xs text-salon-stone print:text-gray-600">
-                                                                    {b.client_name || b.client?.name} • {new Date(b.date).toLocaleDateString()} {b.time}
-                                                                </div>
-                                                            </td>
-                                                            <td className="py-1 text-right text-green-400 print:text-black print:text-xs">R$ {commission.toFixed(2)}</td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            {financialReport.bookings.filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name).length === 0 && (
-                                                <tr>
-                                                    <td colSpan={3} className="py-4 text-center text-salon-stone">Nenhum serviço neste período.</td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                        <tfoot className="border-t border-white/20 print:border-gray-300 font-bold">
-                                            <tr>
-                                                <td colSpan={2} className="py-3 text-white print:text-black">Total Créditos</td>
-                                                <td className="py-3 text-right text-green-400 print:text-black">
-                                                    R$ {financialReport.bookings
-                                                        .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
-                                                        .reduce((acc, b) => acc + ((b.service_price || 0) * ((statementProfessional.commissionPercentage || 100) / 100)), 0)
-                                                        .toFixed(2)}
-                                                </td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
+                            <div className="print:block">
+                                <div className="text-center mb-8 border-b border-gray-200 pb-4">
+                                    <h1 className="text-2xl font-bold text-white print:text-black mb-1">{statementProfessional.name}</h1>
+                                    <p className="text-salon-stone print:text-gray-600 text-sm">
+                                        Extrato de Período: {new Date(financialStartDate).toLocaleDateString()} até {new Date(financialEndDate).toLocaleDateString()}
+                                    </p>
                                 </div>
 
-                                {/* DEBITS SECTION */}
-                                <div>
-                                    <h3 className="text-lg font-bold text-red-400 print:text-black border-b border-red-400/30 pb-2 mb-4">
-                                        Débitos (Pagamentos/Adiantamentos)
-                                    </h3>
-                                    <table className="w-full text-sm text-left">
-                                        <thead className="text-xs text-salon-stone uppercase border-b border-white/10 print:text-gray-500 print:border-gray-300">
-                                            <tr>
-                                                <th className="py-2">Data</th>
-                                                <th className="py-2">Descrição</th>
-                                                <th className="py-2 text-right">Valor</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-white/10 print:divide-gray-200">
-                                            {financialReport.payments
-                                                .filter(p => p.professional_id === statementProfessional.id)
-                                                .map(p => (
-                                                    <tr key={p.id}>
-                                                        <td className="py-2 text-salon-stone print:text-gray-700">{new Date(p.date).toLocaleDateString()}</td>
-                                                        <td className="py-2 text-white print:text-black">{p.note || 'Pagamento'}</td>
-                                                        <td className="py-2 text-right text-red-400 print:text-black">R$ {parseFloat(p.amount).toFixed(2)}</td>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 print:block print:gap-0">
+                                    {/* CREDITS SECTION */}
+                                    <div className="print:mb-4">
+                                        <h3 className="text-lg font-bold text-green-400 print:text-black print:text-sm border-b border-green-400/30 pb-2 mb-4 print:mb-1">
+                                            Créditos (Comissões)
+                                        </h3>
+                                        <table className="w-full text-sm text-left print:text-[10px] print:leading-tight">
+                                            <thead className="text-xs text-salon-stone uppercase border-b border-white/10 print:text-black print:border-gray-800 print:text-[9px]">
+                                                <tr>
+                                                    <th className="py-1 print:py-0">Data</th>
+                                                    <th className="py-1 print:py-0">Serviço/Cliente</th>
+                                                    <th className="py-1 text-right print:py-0">Valor</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/10 print:divide-gray-200">
+                                                {financialReport.bookings
+                                                    .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
+                                                    .map(b => {
+                                                        const commissionRate = statementProfessional.commissionPercentage || 100;
+                                                        const commission = (b.service_price || 0) * (commissionRate / 100);
+                                                        return (
+                                                            <tr key={b.id}>
+                                                                <td className="py-1 text-salon-stone print:text-gray-700 print:text-xs">{new Date(b.date).toLocaleDateString()}</td>
+                                                                <td className="py-1 text-white print:text-black print:text-xs">
+                                                                    <div className="font-bold">{b.service_title || b.service?.title}</div>
+                                                                    <div className="text-xs text-salon-stone print:text-gray-600">
+                                                                        {b.client_name || b.client?.name} • {new Date(b.date).toLocaleDateString()} {b.time}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="py-1 text-right text-green-400 print:text-black print:text-xs">R$ {commission.toFixed(2)}</td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                {financialReport.bookings.filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name).length === 0 && (
+                                                    <tr>
+                                                        <td colSpan={3} className="py-4 text-center text-salon-stone">Nenhum serviço neste período.</td>
                                                     </tr>
-                                                ))}
-                                            {financialReport.payments.filter(p => p.professional_id === statementProfessional.id).length === 0 && (
+                                                )}
+                                            </tbody>
+                                            <tfoot className="border-t border-white/20 print:border-gray-300 font-bold">
                                                 <tr>
-                                                    <td colSpan={3} className="py-4 text-center text-salon-stone">Nenhum pagamento desete período.</td>
+                                                    <td colSpan={2} className="py-3 text-white print:text-black">Total Créditos</td>
+                                                    <td className="py-3 text-right text-green-400 print:text-black">
+                                                        R$ {financialReport.bookings
+                                                            .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
+                                                            .reduce((acc, b) => acc + ((b.service_price || 0) * ((statementProfessional.commissionPercentage || 100) / 100)), 0)
+                                                            .toFixed(2)}
+                                                    </td>
                                                 </tr>
-                                            )}
-                                        </tbody>
-                                        <tfoot className="border-t border-white/20 print:border-gray-300 font-bold">
-                                            <tr>
-                                                <td colSpan={2} className="py-3 text-white print:text-black">Total Débitos</td>
-                                                <td className="py-3 text-right text-red-400 print:text-black">
-                                                    R$ {financialReport.payments
-                                                        .filter(p => p.professional_id === statementProfessional.id)
-                                                        .reduce((acc, p) => acc + parseFloat(p.amount), 0)
-                                                        .toFixed(2)}
-                                                </td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
-                            </div>
+                                            </tfoot>
+                                        </table>
+                                    </div>
 
-                            <div className="mt-8 pt-4 border-t border-salon-gold/30 print:border-black flex justify-between items-center bg-salon-white/5 p-4 rounded-xl print:bg-gray-100">
-                                <div className="text-lg text-white print:text-black">Saldo Final do Período</div>
-                                <div className={`text-3xl font-bold print:text-black ${(financialReport.bookings
-                                    .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
-                                    .reduce((acc, b) => acc + ((b.service_price || 0) * ((statementProfessional.commissionPercentage || 100) / 100)), 0) -
-                                    financialReport.payments
-                                        .filter(p => p.professional_id === statementProfessional.id)
-                                        .reduce((acc, p) => acc + parseFloat(p.amount), 0)) >= 0 ? 'text-blue-400' : 'text-red-500'
-                                    }`}>
-                                    R$ {(financialReport.bookings
+                                    {/* DEBITS SECTION */}
+                                    <div>
+                                        <h3 className="text-lg font-bold text-red-400 print:text-black print:text-sm border-b border-red-400/30 pb-2 mb-4 print:mb-1">
+                                            Débitos (Pagamentos/Adiantamentos)
+                                        </h3>
+                                        <table className="w-full text-sm text-left print:text-[10px] print:leading-tight">
+                                            <thead className="text-xs text-salon-stone uppercase border-b border-white/10 print:text-black print:border-gray-800 print:text-[9px]">
+                                                <tr>
+                                                    <th className="py-2">Data</th>
+                                                    <th className="py-2">Descrição</th>
+                                                    <th className="py-2 text-right">Valor</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/10 print:divide-gray-200">
+                                                {financialReport.payments
+                                                    .filter(p => p.professional_id === statementProfessional.id)
+                                                    .map(p => (
+                                                        <tr key={p.id}>
+                                                            <td className="py-2 text-salon-stone print:text-gray-700">{new Date(p.date).toLocaleDateString()}</td>
+                                                            <td className="py-2 text-white print:text-black">{p.note || 'Pagamento'}</td>
+                                                            <td className="py-2 text-right text-red-400 print:text-black">R$ {parseFloat(p.amount).toFixed(2)}</td>
+                                                        </tr>
+                                                    ))}
+                                                {financialReport.payments.filter(p => p.professional_id === statementProfessional.id).length === 0 && (
+                                                    <tr>
+                                                        <td colSpan={3} className="py-4 text-center text-salon-stone">Nenhum pagamento desete período.</td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                            <tfoot className="border-t border-white/20 print:border-gray-300 font-bold">
+                                                <tr>
+                                                    <td colSpan={2} className="py-3 text-white print:text-black">Total Débitos</td>
+                                                    <td className="py-3 text-right text-red-400 print:text-black">
+                                                        R$ {financialReport.payments
+                                                            .filter(p => p.professional_id === statementProfessional.id)
+                                                            .reduce((acc, p) => acc + parseFloat(p.amount), 0)
+                                                            .toFixed(2)}
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div className="mt-8 pt-4 border-t border-salon-gold/30 print:border-black flex justify-between items-center bg-salon-white/5 p-4 rounded-xl print:bg-gray-100">
+                                    <div className="text-lg text-white print:text-black">Saldo Final do Período</div>
+                                    <div className={`text-3xl font-bold print:text-black ${(financialReport.bookings
                                         .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
                                         .reduce((acc, b) => acc + ((b.service_price || 0) * ((statementProfessional.commissionPercentage || 100) / 100)), 0) -
                                         financialReport.payments
                                             .filter(p => p.professional_id === statementProfessional.id)
-                                            .reduce((acc, p) => acc + parseFloat(p.amount), 0)).toFixed(2)}
+                                            .reduce((acc, p) => acc + parseFloat(p.amount), 0)) >= 0 ? 'text-blue-400' : 'text-red-500'
+                                        }`}>
+                                        R$ {(financialReport.bookings
+                                            .filter(b => b.professional_id === statementProfessional.id || b.professional_name === statementProfessional.name)
+                                            .reduce((acc, b) => acc + ((b.service_price || 0) * ((statementProfessional.commissionPercentage || 100) / 100)), 0) -
+                                            financialReport.payments
+                                                .filter(p => p.professional_id === statementProfessional.id)
+                                                .reduce((acc, p) => acc + parseFloat(p.amount), 0)).toFixed(2)}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="mt-8 flex justify-end gap-4 print:hidden">
-                                <button
-                                    onClick={() => setStatementProfessional(null)}
-                                    className="px-4 py-2 rounded text-salon-stone hover:bg-white/10 transition-colors"
-                                >
-                                    Fechar
-                                </button>
-                                <button
-                                    onClick={() => window.print()}
-                                    className="bg-salon-gold text-salon-black px-6 py-2 rounded font-bold hover:bg-white transition-colors"
-                                >
-                                    🖨️ Imprimir Extrato
-                                </button>
+                                <div className="mt-8 flex justify-end gap-4 print:hidden">
+                                    <button
+                                        onClick={() => setStatementProfessional(null)}
+                                        className="px-4 py-2 rounded text-salon-stone hover:bg-white/10 transition-colors"
+                                    >
+                                        Fechar
+                                    </button>
+                                    <button
+                                        onClick={() => window.print()}
+                                        className="bg-salon-gold text-salon-black px-6 py-2 rounded font-bold hover:bg-white transition-colors"
+                                    >
+                                        🖨️ Imprimir Extrato
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }
