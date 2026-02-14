@@ -12,8 +12,8 @@ export default function SaaSLanding() {
 
             <header className="relative z-10 container mx-auto px-6 py-6 flex justify-between items-center">
                 <div className="text-2xl font-bold text-salon-gold flex items-center gap-2">
-                    <span className="bg-salon-gold text-salon-black px-2 py-1 rounded">UNO</span>
-                    <span>BARBER</span>
+                    <span className="text-3xl">💈</span>
+                    <span>UNOBARBER</span>
                 </div>
                 <nav className="hidden md:flex gap-8 items-center bg-salon-black/50 px-6 py-2 rounded-full border border-salon-gold/10 backdrop-blur-sm">
                     <a href="#features" className="text-salon-stone hover:text-white transition-colors">Funcionalidades</a>

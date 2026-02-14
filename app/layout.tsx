@@ -15,8 +15,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Salao Scheduling",
-  description: "Sistema de agendamento para salões de beleza",
+  title: "UnoBarber - Sistema Inteligente para Barbearias",
+  description: "Transforme sua barbearia em uma máquina de vendas com agendamento automático e gestão financeira.",
+  icons: {
+    icon: "/barber-pole.svg",
+  },
 };
 
 export default function RootLayout({

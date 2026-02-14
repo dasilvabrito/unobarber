@@ -1,0 +1,15 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="512" height="512" rx="100" fill="white"/>
+<path d="M156 100H356V412H156V100Z" fill="#F0F0F0" stroke="#333" stroke-width="10"/>
+<mask id="pole-mask">
+<rect x="166" y="110" width="180" height="292" fill="white"/>
+</mask>
+<g mask="url(#pole-mask)">
+<path d="M100 150L400 450" stroke="#D32F2F" stroke-width="40"/>
+<path d="M100 250L400 550" stroke="#1976D2" stroke-width="40"/>
+<path d="M100 50L400 350" stroke="#1976D2" stroke-width="40"/>
+<path d="M100 -50L400 250" stroke="#D32F2F" stroke-width="40"/>
+</g>
+<rect x="146" y="80" width="220" height="30" rx="15" fill="#333"/>
+<rect x="146" y="402" width="220" height="30" rx="15" fill="#333"/>
+</svg>
