@@ -2,8 +2,6 @@
 
 import { supabase } from './lib/supabase';
 import { revalidatePath } from 'next/cache';
-import fs from 'fs';
-import path from 'path';
 
 // --- Service Management ---
 
@@ -143,26 +141,49 @@ export async function uploadLogo(slug: string, formData: FormData) {
         return { success: false, message: "Nenhum arquivo enviado.", url: "" };
     }
 
+    // Safety check for file size (e.g., 5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+        return { success: false, message: "Arquivo muito grande. Máximo 5MB.", url: "" };
+    }
+
     try {
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
+        // Sanitize filename
+        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '');
+        const fileName = `${slug}-${Date.now()}-${cleanName}`;
 
-        // Ensure directory exists
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', slug);
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
+        console.log(`Attempting to upload ${fileName} to 'logos' bucket...`);
+
+        // Upload to Supabase Storage 'logos' bucket
+        const { data, error } = await supabase.storage
+            .from('logos')
+            .upload(fileName, buffer, {
+                contentType: file.type,
+                upsert: true
+            });
+
+        if (error) {
+            console.error("Supabase Storage Error Details:", error);
+            // Translate common errors
+            if (error.message.includes("Bucket not found")) {
+                return { success: false, message: "Erro: Bucket 'logos' não encontrado no Supabase." };
+            }
+            if (error.message.includes("new row violates row-level security policy")) {
+                return { success: false, message: "Erro: Permissão negada (RLS). Verifique as políticas do Storage." };
+            }
+            return { success: false, message: `Erro no Storage: ${error.message}` };
         }
 
-        const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
-        const filePath = path.join(uploadDir, fileName);
+        const { data: { publicUrl } } = supabase.storage
+            .from('logos')
+            .getPublicUrl(fileName);
 
-        fs.writeFileSync(filePath, buffer);
-
-        const url = `/uploads/${slug}/${fileName}`;
-        return { success: true, url };
-    } catch (error) {
-        console.error("Error uploading logo:", error);
-        return { success: false, message: "Erro ao salvar arquivo." };
+        console.log("Upload successful:", publicUrl);
+        return { success: true, url: publicUrl };
+    } catch (error: any) {
+        console.error("Unexpected Error uploading logo:", error);
+        return { success: false, message: `Erro inesperado: ${error.message || error}` };
     }
 }
 

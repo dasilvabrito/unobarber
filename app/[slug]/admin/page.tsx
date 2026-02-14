@@ -1200,18 +1200,31 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                                         const formData = new FormData();
                                                         formData.append('file', file);
 
+                                                        // Show loading feedback (disable input momentarily)
+                                                        const input = e.target;
+                                                        input.disabled = true;
+                                                        const originalCursor = document.body.style.cursor;
+                                                        document.body.style.cursor = 'wait';
+
                                                         try {
                                                             const { uploadLogo } = await import('@/app/actions');
                                                             const result = await uploadLogo(slug, formData);
+
                                                             if (result.success && result.url) {
                                                                 setSettings({ ...settings, logoUrl: result.url });
                                                                 alert("Logo enviado com sucesso!");
                                                             } else {
-                                                                alert("Erro ao enviar logo.");
+                                                                // Show specific error from server
+                                                                alert(result.message || "Erro ao enviar logo.");
                                                             }
-                                                        } catch (err) {
+                                                        } catch (err: any) {
                                                             console.error(err);
-                                                            alert("Erro ao enviar logo.");
+                                                            alert(`Erro inesperado: ${err.message || err}`);
+                                                        } finally {
+                                                            input.disabled = false;
+                                                            document.body.style.cursor = originalCursor;
+                                                            // Clear input so same file can be selected again if needed
+                                                            input.value = '';
                                                         }
                                                     }}
                                                     className="w-full bg-salon-black border border-salon-brown rounded-lg p-3 text-white focus:border-salon-gold outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-salon-gold file:text-salon-black hover:file:bg-white"
