@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 
 export default function Header({ slug }: { slug: string }) {
   const [logoUrl, setLogoUrl] = useState("");
+  const [salonName, setSalonName] = useState("");
   const [socials, setSocials] = useState({ instagram: "", whatsapp: "", googleMapsUrl: "" });
 
   useEffect(() => {
@@ -13,6 +14,7 @@ export default function Header({ slug }: { slug: string }) {
         const { getSettings } = await import('@/app/actions');
         const settings = await getSettings(slug);
         if (settings.logoUrl) setLogoUrl(settings.logoUrl);
+        if (settings.salonName) setSalonName(settings.salonName);
         setSocials({
           instagram: settings.socialMedia?.instagram || settings.instagram || "",
           whatsapp: settings.socialMedia?.whatsapp || settings.whatsapp || "",
@@ -31,20 +33,22 @@ export default function Header({ slug }: { slug: string }) {
   return (
     <header className="fixed top-0 w-full z-50 bg-[#050505]/90 backdrop-blur-md border-b border-salon-brown/50 transition-all duration-300">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {logoUrl ? (
-          <Link href={baseUrl} className="flex items-center gap-2 group">
+        <Link href={baseUrl} className="flex items-center gap-2 group">
+          {logoUrl ? (
             <div className="relative overflow-hidden rounded-md border border-salon-gold/20 group-hover:border-salon-gold/50 transition-colors">
               <img
                 src={logoUrl}
-                alt="Logo da Barbearia"
+                alt={salonName || "Logo da Barbearia"}
                 className="h-12 w-auto object-contain"
                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
               />
             </div>
-          </Link>
-        ) : (
-          <div /> /* Spacer or Empty to keep layout if needed, or just nothing */
-        )}
+          ) : (
+            <span className="text-xl font-bold text-salon-gold uppercase tracking-wider hover:text-white transition-colors">
+              {salonName || "Sua Barbearia"}
+            </span>
+          )}
+        </Link>
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-4 md:gap-6">
