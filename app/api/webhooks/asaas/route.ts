@@ -1,43 +1,52 @@
-import { NextResponse } from 'next/server';
-import { renewLicense } from '@/app/actions';
+import { NextRequest, NextResponse } from 'next/server';
+import { supabase } from '@/app/lib/supabase';
+import { updateTenantStatus } from '@/app/actions';
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
     try {
-        const token = request.headers.get('asaas-access-token');
-        const secret = process.env.ASAAS_WEBHOOK_SECRET || 'demo-secret';
+        const event = await req.json();
+        const { event: eventType, payment } = event;
 
-        // 1. Security Check (Optional but recommended)
-        if (token !== secret) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!payment || !payment.id) {
+            return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
         }
 
-        const event = await request.json();
+        console.log(`Received Asaas Webhook: ${eventType} for payment ${payment.id}`);
 
-        // 2. Filter Event Type
-        if (event.event !== 'PAYMENT_CONFIRMED' && event.event !== 'PAYMENT_RECEIVED') {
-            return NextResponse.json({ message: 'Ignored event' });
+        // 1. Handle Payment Received
+        if (eventType === 'PAYMENT_RECEIVED' || eventType === 'PAYMENT_CONFIRMED') {
+            // Update Billing Status
+            const { error } = await supabase
+                .from('billings')
+                .update({ status: 'PAID' })
+                .eq('asaas_payment_id', payment.id);
+
+            if (error) {
+                console.error("Error updating billing:", error);
+                return NextResponse.json({ error: error.message }, { status: 500 });
+            }
+
+            // Unblock Tenant (Get slug involves fetching billing first)
+            const { data: billing } = await supabase.from('billings').select('slug').eq('asaas_payment_id', payment.id).single();
+            if (billing) {
+                await updateTenantStatus(billing.slug, true);
+                console.log(`Tenant ${billing.slug} unblocked/activated.`);
+            }
         }
 
-        // 3. Extract Tenant Slug
-        // We expect the 'externalReference' field in Asaas to contain the tenant slug
-        const slug = event.payment.externalReference;
+        // 2. Handle Payment Overdue
+        else if (eventType === 'PAYMENT_OVERDUE') {
+            await supabase
+                .from('billings')
+                .update({ status: 'OVERDUE' })
+                .eq('asaas_payment_id', payment.id);
 
-        if (!slug) {
-            return NextResponse.json({ error: 'No externalReference found' }, { status: 400 });
+            // We allow checkUsageAndBill to handle blocking logic via grace period
         }
 
-        // 4. Renew License
-        // Default to adding 1 month
-        const result = await renewLicense(slug, 1);
-
-        return NextResponse.json({
-            success: true,
-            message: `License renewed for ${slug}`,
-            newExpiration: result.expirationDate
-        });
-
-    } catch (error) {
-        console.error('Webhook Error:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ received: true });
+    } catch (err: any) {
+        console.error("Webhook Error:", err);
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

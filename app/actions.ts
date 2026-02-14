@@ -2,6 +2,7 @@
 
 import { supabase } from './lib/supabase';
 import { revalidatePath } from 'next/cache';
+import { createCustomer, createCharge } from './lib/asaas';
 
 // --- Service Management ---
 
@@ -12,10 +13,6 @@ export async function getServices(slug: string) {
         .eq('tenant_slug', slug)
         .eq('active', true);
 
-    if (error) {
-        console.error('Error fetching services:', error);
-        return [];
-    }
     if (error) {
         console.error('Error fetching services:', error);
         return [];
@@ -89,6 +86,7 @@ export async function deleteService(slug: string, serviceId: string) {
 }
 
 // --- Settings Management ---
+
 const DEFAULT_SETTINGS = {
     startHour: "09:00",
     endHour: "19:00",
@@ -102,6 +100,10 @@ const DEFAULT_SETTINGS = {
     address: "",
     googleMapsUrl: "",
     instagram: "",
+    financialResponsible: {
+        name: "",
+        cpf: ""
+    },
     socialMedia: {
         instagram: "",
         facebook: "",
@@ -124,6 +126,16 @@ export async function getSettings(slug: string) {
 }
 
 export async function saveSettings(slug: string, settings: any) {
+    // Validation for Financial Responsible
+    if (settings.financialResponsible) {
+        if (!settings.financialResponsible.name || settings.financialResponsible.name.trim().length < 5) {
+            return { success: false, message: "Nome do Responsável Financeiro é obrigatório e deve ser completo." };
+        }
+        if (!settings.financialResponsible.cpf || settings.financialResponsible.cpf.replace(/\D/g, '').length !== 11) {
+            return { success: false, message: "CPF do Responsável Financeiro inválido." };
+        }
+    }
+
     const { data: existing } = await supabase.from('tenants').select('slug').eq('slug', slug).single();
 
     if (!existing) {
@@ -196,6 +208,109 @@ export async function getSlugSuggestions(slug: string) {
     return [`${slug}barber`, `${slug}oficial`, `${slug}salao`];
 }
 
+// --- Billing Logic ---
+
+export async function getBillings(slug: string) {
+    const { data, error } = await supabase
+        .from('billings')
+        .select('*')
+        .eq('slug', slug)
+        .order('created_at', { ascending: false });
+
+    if (error) return [];
+    return data;
+}
+
+export async function checkUsageAndBill(slug: string) {
+    // 1. Get current month bookings count
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
+
+    const { count } = await supabase
+        .from('bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_slug', slug)
+        .neq('status', 'cancelled')
+        .gte('date', startOfMonth)
+        .lte('date', endOfMonth);
+
+    if (count === null) return { status: 'OK' };
+
+    // 2. Limit Check (50 bookings)
+    if (count > 50) {
+        // Check if already billed for this month (by checking creation date within same month range)
+        const { data: billing } = await supabase
+            .from('billings')
+            .select('*')
+            .eq('slug', slug)
+            .gte('created_at', startOfMonth)
+            .lte('created_at', endOfMonth)
+            .single();
+
+        if (billing) {
+            if (billing.status === 'PAID') return { status: 'OK' };
+
+            // Check Grace Period (3 days)
+            const billingDate = new Date(billing.created_at);
+            const diffTime = Math.abs(now.getTime() - billingDate.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 3) {
+                // BLOCK TENANT
+                await updateTenantStatus(slug, false);
+                return { status: 'BLOCKED' };
+            }
+            return { status: 'WARNING', daysLeft: 3 - diffDays };
+        } else {
+            // GENERATE BILLING
+            const settings = await getSettings(slug);
+            const responsible = settings.financialResponsible;
+
+            if (!responsible || !responsible.name || !responsible.cpf) {
+                return { status: 'MISSING_INFO' };
+            }
+
+            try {
+                // 1. Create/Get Customer
+                const customerId = await createCustomer(
+                    responsible.name,
+                    responsible.cpf,
+                    'email@placeholder.com',
+                    settings.whatsapp || '00000000000'
+                );
+
+                // 2. Create Charge
+                const dueDate = new Date();
+                dueDate.setDate(dueDate.getDate() + 3); // 3 days to pay
+                const charge = await createCharge(
+                    customerId,
+                    19.90,
+                    dueDate.toISOString().split('T')[0],
+                    `Assinatura Profissional - ${now.getMonth() + 1}/${now.getFullYear()}`
+                );
+
+                // 3. Save to DB
+                await supabase.from('billings').insert([{
+                    slug,
+                    asaas_payment_id: charge.id,
+                    invoice_url: charge.invoiceUrl,
+                    status: 'PENDING',
+                    due_date: dueDate.toISOString().split('T')[0]
+                }]);
+
+                return { status: 'WARNING', daysLeft: 3 };
+
+            } catch (err) {
+                console.error("Billing Error:", err);
+                return { status: 'ERROR' };
+            }
+        }
+    }
+
+    return { status: 'OK' };
+}
+
 // --- Booking Management ---
 
 export async function getBookings(slug: string) {
@@ -221,7 +336,7 @@ export async function getBookings(slug: string) {
         client: { name: b.client_name, phone: b.client_phone },
         service: { title: b.service_title, price: b.service_price },
         professionalName: b.professional_name,
-        professionalId: b.professional_id, // Ensure this is returned
+        professionalId: b.professional_id,
         status: b.status,
         createdAt: b.created_at,
         // Mock followUp 
@@ -254,6 +369,14 @@ async function autoCompletePastBookings(slug: string) {
 }
 
 export async function saveBooking(slug: string, bookingData: any) {
+    // 1. Check Usage BEFORE saving
+    const billingStatus = await checkUsageAndBill(slug);
+    if (billingStatus.status === 'BLOCKED') {
+        return { success: false, message: "Sistema bloqueado por falta de pagamento. Contate o suporte." };
+    }
+
+    // Warn if needed? For now we just proceed if not blocked.
+
     const newBooking = {
         tenant_slug: slug,
         date: bookingData.date,
@@ -266,10 +389,6 @@ export async function saveBooking(slug: string, bookingData: any) {
         professional_id: bookingData.professionalId === 'any' ? null : bookingData.professionalId,
         status: 'confirmed'
     };
-
-    // CHECK PLAN LIMITS - REMOVED: Clients can ALWAYS schedule.
-    // The block happens on the ADMIN side (layout.tsx) via validateLicense.
-
 
     const { error } = await supabase.from('bookings').insert([newBooking]);
 
@@ -482,9 +601,6 @@ export async function getAvailableSlots(slug: string, date: string, duration?: s
 
     // Current Time Logic for Dynamic Blocking
     const now = new Date();
-    // Adjust to Brazil time (UTC-3) roughly or rely on server time if deployed in region. 
-    // Ideally use a library but for now simple check:
-    // If date === now.toISOString().split('T')[0]
     const todayStr = now.toISOString().split('T')[0];
     let cutoffMinutes = -1;
 
@@ -501,7 +617,7 @@ export async function getAvailableSlots(slug: string, date: string, duration?: s
             // Check blocking
             const slotMinutes = h * 60 + m;
             if (cutoffMinutes > -1 && slotMinutes < cutoffMinutes) {
-                continue; // Block past/soon slots
+                continue;
             }
 
             const isTaken = dayBookings.some((b: any) => b.time === timeStr);
@@ -578,10 +694,6 @@ export async function getFinancialReport(slug: string, startDate: string, endDat
     return { bookings: bookings || [], payments: payments || [] };
 }
 
-// REVISING strategy during tool call:
-// I will add professional_id to bookings in schema step afterwards or I should have done it.
-// I'll do it in next step. For now I place the code structure.
-
 export async function getSystemSubscription(slug: string) {
     return {
         license: { plan: 'pro', expiration: '2026-12-31' },
@@ -622,18 +734,9 @@ export async function validateLicense(slug: string) {
 
     const license = tenant.settings?.license || { active: true, plan: 'starter' };
 
-    // Check Limits for Starter Plan
-    if (license.plan === 'starter') {
-        const { count } = await supabase
-            .from('bookings')
-            .select('*', { count: 'exact', head: true })
-            .eq('tenant_slug', slug)
-            .neq('status', 'cancelled');
-
-        if (count !== null && count >= 30) {
-            return { valid: false, plan: 'starter', reason: 'limit_reached' };
-        }
-    }
+    // Limit check is handled in checkUsageAndBill.
+    // Here we mainly check if we are ALREADY blocked.
+    // checkUsageAndBill sets license.active to false when blocking.
 
     if (!license.active) return { valid: false, reason: 'expired' };
 

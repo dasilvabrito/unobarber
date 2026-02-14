@@ -170,3 +170,26 @@ export async function getSession() {
         return null;
     }
 }
+
+// --- Admin User Management ---
+export async function updateUserCredentials(slug: string, data: { email?: string, password?: string }) {
+    const updates: any = {};
+    if (data.email) updates.email = data.email;
+    if (data.password) {
+        updates.password = await bcrypt.hash(data.password, 10);
+    }
+
+    if (Object.keys(updates).length === 0) return { success: false, message: "Nada para atualizar." };
+
+    const { error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('slug', slug);
+
+    if (error) {
+        console.error("Error updating user:", error);
+        return { success: false, message: `Erro ao atualizar usuário: ${error.message}` };
+    }
+
+    return { success: true, message: "Usuário atualizado com sucesso." };
+}

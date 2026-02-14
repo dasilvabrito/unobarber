@@ -9,7 +9,7 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
     const [bookings, setBookings] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
-    const [activeTab, setActiveTab] = useState<'bookings' | 'services' | 'style' | 'settings' | 'team' | 'financial'>('bookings');
+    const [activeTab, setActiveTab] = useState<'bookings' | 'services' | 'style' | 'settings' | 'team' | 'financial' | 'subscription'>('bookings');
     const [services, setServices] = useState<any[]>([]);
     const [professionals, setProfessionals] = useState<any[]>([]);
     const [editingService, setEditingService] = useState<any>(null);
@@ -191,15 +191,19 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
     useEffect(() => {
         if (activeTab === 'financial') {
             const fetchFinancial = async () => {
-                const { getSystemSubscription, getFinancialReport } = await import('@/app/actions');
-                const [subData, reportData] = await Promise.all([
-                    getSystemSubscription(slug),
-                    getFinancialReport(slug, financialStartDate, financialEndDate)
-                ]);
-                setSubscriptionData(subData);
+                const { getFinancialReport } = await import('@/app/actions');
+                const reportData = await getFinancialReport(slug, financialStartDate, financialEndDate);
                 setFinancialReport(reportData);
             };
             fetchFinancial();
+        }
+        if (activeTab === 'subscription') {
+            const fetchSubscription = async () => {
+                const { getBillings } = await import('@/app/actions');
+                const billings = await getBillings(slug);
+                setSubscriptionData({ history: billings });
+            };
+            fetchSubscription();
         }
     }, [activeTab, slug, financialStartDate, financialEndDate]);
 
@@ -309,6 +313,7 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                         { id: 'team', label: '💈 Equipe' },
                         { id: 'services', label: '✂️ Serviços' },
                         { id: 'financial', label: '💰 Financeiro' },
+                        { id: 'subscription', label: '💳 Assinatura' },
                         { id: 'settings', label: '⚙️ Configurações' },
                         { id: 'style', label: '🎨 Estilo' }
                     ].map((tab) => (
@@ -1017,6 +1022,54 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                 }
 
                 {
+                    activeTab === 'subscription' && (
+                        <div className="space-y-6 animate-in fade-in duration-500">
+                            <div className="bg-salon-black/50 border border-salon-gold/20 p-6 rounded-xl flex justify-between items-center">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-white mb-2">Assinatura Profissional</h2>
+                                    <p className="text-salon-stone">Gerencie sua assinatura e faturas para continuar utilizando o sistema.</p>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-sm text-salon-stone uppercase mb-1">Status</div>
+                                    <div className="text-xl font-bold text-green-400">ATIVO</div>
+                                </div>
+                            </div>
+
+                            <div className="bg-salon-black/50 border border-salon-brown/30 rounded-xl overflow-hidden">
+                                <div className="p-4 border-b border-salon-brown/30 bg-salon-white/5">
+                                    <h3 className="font-bold text-white">Histórico de Cobranças</h3>
+                                </div>
+                                {!subscriptionData?.history || subscriptionData.history.length === 0 ? (
+                                    <div className="p-8 text-center text-salon-stone">Nenhuma cobrança gerada ainda.</div>
+                                ) : (
+                                    <div className="divide-y divide-salon-brown/20">
+                                        {subscriptionData.history.map((bill: any) => (
+                                            <div key={bill.id} className="p-4 flex justify-between items-center hover:bg-white/5">
+                                                <div>
+                                                    <div className="font-bold text-white">Mensalidade Pro</div>
+                                                    <div className="text-xs text-salon-stone">Vencimento: {new Date(bill.due_date).toLocaleDateString('pt-BR')}</div>
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`font-bold text-sm px-3 py-1 rounded-full border ${bill.status === 'PAID' ? 'text-green-400 border-green-500/30 bg-green-500/10' : bill.status === 'OVERDUE' ? 'text-red-400 border-red-500/30 bg-red-500/10' : 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10'}`}>
+                                                        {bill.status === 'PAID' ? 'PAGO' : bill.status === 'OVERDUE' ? 'ATRASADO' : 'PENDENTE'}
+                                                    </div>
+                                                    {bill.status !== 'PAID' && bill.invoice_url && (
+                                                        <a href={bill.invoice_url} target="_blank" className="bg-salon-gold text-salon-black px-4 py-2 rounded-lg font-bold hover:bg-white transition-colors text-sm flex items-center gap-2">
+                                                            <span>Pagar Agora</span>
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )
+                }
+
+                {
                     activeTab === 'settings' && (
                         <div className="bg-salon-black/50 border border-salon-brown/50 rounded-xl p-6 mb-8 backdrop-blur-sm">
                             <h2 className="text-xl font-bold text-white mb-4">Configurações do Salão</h2>
@@ -1066,6 +1119,41 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                         />
                                         <p className="text-xs text-salon-stone mt-1">Aceita link curto ou link completo do Google Maps.</p>
                                     </div>
+                                </div>
+
+                                {/* Financial Responsible (Mandatory for Billing) */}
+                                <div className="border-t border-salon-brown/30 pt-4">
+                                    <h3 className="text-salon-gold font-bold mb-3 text-sm uppercase tracking-wider">Responsável Financeiro (Obrigatório)</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-salon-stone mb-2 text-sm">Nome Completo</label>
+                                            <input
+                                                type="text"
+                                                value={settings.financialResponsible?.name || ''}
+                                                onChange={(e) => setSettings({ ...settings, financialResponsible: { ...settings.financialResponsible, name: e.target.value } })}
+                                                className="w-full bg-salon-black border border-salon-brown rounded-lg p-3 text-white focus:border-salon-gold outline-none"
+                                                placeholder="Nome do titular"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-salon-stone mb-2 text-sm">CPF</label>
+                                            <input
+                                                type="text"
+                                                value={settings.financialResponsible?.cpf || ''}
+                                                onChange={(e) => {
+                                                    // Simple mask
+                                                    let val = e.target.value.replace(/\D/g, '');
+                                                    if (val.length > 11) val = val.slice(0, 11);
+                                                    setSettings({ ...settings, financialResponsible: { ...settings.financialResponsible, cpf: val } });
+                                                }}
+                                                className="w-full bg-salon-black border border-salon-brown rounded-lg p-3 text-white focus:border-salon-gold outline-none"
+                                                placeholder="000.000.000-00"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-salon-stone mt-2">Necessário para geração das cobranças automáticas via Asaas e liberação do sistema.</p>
                                 </div>
 
                                 {/* Weekly Schedule */}

@@ -7,6 +7,8 @@ export default function SuperAdminPage() {
     const [loading, setLoading] = useState(true);
     const [auth, setAuth] = useState(false);
     const [key, setKey] = useState('');
+    const [editingUser, setEditingUser] = useState<any>(null);
+    const [editForm, setEditForm] = useState({ email: '', password: '' });
 
     useEffect(() => {
         const storedKey = localStorage.getItem('saas_admin_key');
@@ -57,6 +59,35 @@ export default function SuperAdminPage() {
             fetchTenants();
         } catch (error) {
             alert("Erro ao excluir.");
+        }
+    };
+
+    const handleUpdateUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingUser) return;
+
+        try {
+            // Dynamically import to avoid server-side issues in client component if strict
+            const { updateUserCredentials } = await import('@/app/auth-actions');
+
+            // Only send fields that have values
+            const updates: any = {};
+            if (editForm.email) updates.email = editForm.email;
+            if (editForm.password) updates.password = editForm.password;
+
+            const result = await updateUserCredentials(editingUser.slug, updates);
+
+            if (result.success) {
+                alert("Usuário atualizado com sucesso!");
+                setEditingUser(null);
+                setEditForm({ email: '', password: '' });
+                fetchTenants();
+            } else {
+                alert(result.message);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao atualizar usuário.");
         }
     };
 
@@ -166,6 +197,16 @@ export default function SuperAdminPage() {
                                                 >
                                                     🗑️ Excluir
                                                 </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingUser(t);
+                                                        setEditForm({ email: t.owner.email, password: '' });
+                                                    }}
+                                                    className="px-3 py-1 rounded text-xs font-bold bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white ml-2"
+                                                    title="Editar Usuário"
+                                                >
+                                                    ✏️ Editar
+                                                </button>
                                             </td>
                                         </tr>
                                     );
@@ -177,7 +218,54 @@ export default function SuperAdminPage() {
                         )}
                     </div>
                 )}
+
+                {/* Edit User Modal */}
+                {editingUser && (
+                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                        <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-sm">
+                            <h2 className="text-xl font-bold text-white mb-4">Editar Acesso: {editingUser.owner.name}</h2>
+                            <form onSubmit={handleUpdateUser} className="space-y-4">
+                                <div>
+                                    <label className="block text-gray-400 text-sm mb-1">Novo Email</label>
+                                    <input
+                                        type="email"
+                                        value={editForm.email}
+                                        onChange={e => setEditForm({ ...editForm, email: e.target.value })}
+                                        className="w-full bg-black border border-gray-700 rounded p-2 text-white"
+                                        placeholder={editingUser.owner.email}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 text-sm mb-1">Nova Senha</label>
+                                    <input
+                                        type="text"
+                                        value={editForm.password}
+                                        onChange={e => setEditForm({ ...editForm, password: e.target.value })}
+                                        className="w-full bg-black border border-gray-700 rounded p-2 text-white"
+                                        placeholder="Deixe em branco para manter"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">Preencha apenas se quiser alterar a senha.</p>
+                                </div>
+                                <div className="flex gap-2 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditingUser(null)}
+                                        className="flex-1 py-2 rounded bg-gray-800 text-gray-300 hover:bg-gray-700"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="flex-1 py-2 rounded bg-blue-600 text-white font-bold hover:bg-blue-500"
+                                    >
+                                        Salvar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
             </div>
-        </div>
+        </div >
     );
 }

@@ -216,7 +216,7 @@ export default function SaaSLanding() {
                         <div className="p-8 rounded-2xl border-2 border-salon-gold bg-salon-gold/5 transform md:-translate-y-4 relative">
                             <div className="absolute top-0 right-0 bg-salon-gold text-black text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">MAIS POPULAR</div>
                             <h3 className="text-xl font-bold text-salon-gold mb-2">Profissional</h3>
-                            <div className="text-4xl font-bold text-white mb-6">R$ 29,90<span className="text-lg text-salon-stone font-normal">/mês</span></div>
+                            <div className="text-4xl font-bold text-white mb-6">R$ 19,90<span className="text-lg text-salon-stone font-normal">/mês</span></div>
                             <ul className="space-y-4 mb-8 text-white">
                                 <li className="flex gap-2"><span className="text-salon-gold">✔</span> Agendamentos Ilimitados</li>
                                 <li className="flex gap-2"><span className="text-salon-gold">✔</span> Site 100% Personalizado</li>
@@ -224,7 +224,7 @@ export default function SaaSLanding() {
                                 <li className="flex gap-2"><span className="text-salon-gold">✔</span> Notificações WhatsApp</li>
                                 <li className="flex gap-2"><span className="text-salon-gold">✔</span> Gestão Financeira</li>
                             </ul>
-                            <Link href="/dashboard" className="block w-full py-3 text-center bg-salon-gold rounded-lg text-black hover:bg-white font-bold transition-all shadow-lg shadow-salon-gold/20">
+                            <Link href="/register" className="block w-full py-3 text-center bg-salon-gold rounded-lg text-black hover:bg-white font-bold transition-all shadow-lg shadow-salon-gold/20">
                                 Assinar Profissional
                             </Link>
                         </div>
@@ -239,9 +239,9 @@ export default function SaaSLanding() {
                                 <li className="flex gap-2"><span>✔</span> API Dedicada</li>
                                 <li className="flex gap-2"><span>✔</span> Suporte 24/7</li>
                             </ul>
-                            <Link href="#contact" className="block w-full py-3 text-center border border-white/30 rounded-lg text-white hover:bg-white hover:text-black font-bold transition-all">
+                            <a href="https://wa.me/5594992276457" target="_blank" className="block w-full py-3 text-center border border-white/30 rounded-lg text-white hover:bg-white hover:text-black font-bold transition-all">
                                 Falar com Vendas
-                            </Link>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -287,10 +287,23 @@ export default function SaaSLanding() {
             <footer className="py-10 border-t border-salon-brown/30 bg-salon-black text-center text-salon-stone text-sm">
                 <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
                     <p>&copy; 2026 UnoBarber SaaS. Todos os direitos reservados.</p>
-                    <div className="flex gap-6">
-                        <a href="#" className="hover:text-salon-gold">Termos de Uso</a>
-                        <a href="#" className="hover:text-salon-gold">Privacidade</a>
-                        <a href="#" className="hover:text-salon-gold">Suporte</a>
+                    <div className="flex flex-col md:flex-row gap-6 items-center">
+                        <div className="flex gap-4">
+                            <a href="https://wa.me/5594992276457" target="_blank" className="hover:text-salon-gold flex items-center gap-1">
+                                📞 (94) 99227-6457
+                            </a>
+                            <a href="mailto:dasilvabrito@gmail.com" className="hover:text-salon-gold flex items-center gap-1">
+                                ✉️ dasilvabrito@gmail.com
+                            </a>
+                            <a href="https://instagram.com/unobarber.app" target="_blank" className="hover:text-salon-gold flex items-center gap-1">
+                                📷 @unobarber.app
+                            </a>
+                        </div>
+                        <div className="flex gap-6">
+                            <a href="#" className="hover:text-salon-gold">Termos de Uso</a>
+                            <a href="#" className="hover:text-salon-gold">Privacidade</a>
+                            <a href="#" className="hover:text-salon-gold">Suporte</a>
+                        </div>
                     </div>
                 </div>
             </footer>
