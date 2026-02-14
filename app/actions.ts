@@ -2,6 +2,8 @@
 
 import { supabase } from './lib/supabase';
 import { revalidatePath } from 'next/cache';
+import fs from 'fs';
+import path from 'path';
 
 // --- Service Management ---
 
@@ -135,9 +137,33 @@ export async function saveSettings(slug: string, settings: any) {
 }
 
 export async function uploadLogo(slug: string, formData: FormData) {
-    // Stub for now as we don't have Storage buckets configured
-    console.log("Upload requested but Storage not configured");
-    return { success: false, message: "Upload de imagem requer configuração de Storage (Buckets) no Supabase.", url: "" };
+    const file = formData.get('file') as File;
+
+    if (!file) {
+        return { success: false, message: "Nenhum arquivo enviado.", url: "" };
+    }
+
+    try {
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+
+        // Ensure directory exists
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads', slug);
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+        const filePath = path.join(uploadDir, fileName);
+
+        fs.writeFileSync(filePath, buffer);
+
+        const url = `/uploads/${slug}/${fileName}`;
+        return { success: true, url };
+    } catch (error) {
+        console.error("Error uploading logo:", error);
+        return { success: false, message: "Erro ao salvar arquivo." };
+    }
 }
 
 export async function checkSlugAvailability(slug: string) {

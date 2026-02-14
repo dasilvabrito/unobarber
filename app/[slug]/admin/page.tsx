@@ -1200,16 +1200,7 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                             placeholder="Ex: O melhor corte da região"
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-salon-stone mb-2 text-sm">Slogan (Opcional)</label>
-                                        <input
-                                            type="text"
-                                            value={settings.slogan || ''}
-                                            onChange={(e) => setSettings({ ...settings, slogan: e.target.value })}
-                                            className="w-full bg-salon-black border border-salon-brown rounded-lg p-3 text-white focus:border-salon-gold outline-none"
-                                            placeholder="Ex: O melhor corte da região"
-                                        />
-                                    </div>
+
                                     <div>
                                         <label className="block text-salon-stone mb-2 text-sm">Logo do Salão</label>
                                         <div className="flex gap-4 items-center">
@@ -1531,9 +1522,9 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                     <table className="w-full text-sm text-left">
                                         <thead className="text-xs text-salon-stone uppercase border-b border-white/10 print:text-gray-500 print:border-gray-300">
                                             <tr>
-                                                <th className="py-2">Data</th>
-                                                <th className="py-2">Serviço/Cliente</th>
-                                                <th className="py-2 text-right">Valor</th>
+                                                <th className="py-1 print:py-0">Data</th>
+                                                <th className="py-1 print:py-0">Serviço/Cliente</th>
+                                                <th className="py-1 text-right print:py-0">Valor</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/10 print:divide-gray-200">
@@ -1544,12 +1535,14 @@ export default function AdminPage({ params }: { params: Promise<{ slug: string }
                                                     const commission = (b.service_price || 0) * (commissionRate / 100);
                                                     return (
                                                         <tr key={b.id}>
-                                                            <td className="py-2 text-salon-stone print:text-gray-700">{new Date(b.date).toLocaleDateString()}</td>
-                                                            <td className="py-2 text-white print:text-black">
-                                                                <div>{b.service?.name}</div>
-                                                                <div className="text-xs text-salon-stone">{b.customerName}</div>
+                                                            <td className="py-1 text-salon-stone print:text-gray-700 print:text-xs">{new Date(b.date).toLocaleDateString()}</td>
+                                                            <td className="py-1 text-white print:text-black print:text-xs">
+                                                                <div className="font-bold">{b.service_title || b.service?.title}</div>
+                                                                <div className="text-xs text-salon-stone print:text-gray-600">
+                                                                    {b.client_name || b.client?.name} • {new Date(b.date).toLocaleDateString()} {b.time}
+                                                                </div>
                                                             </td>
-                                                            <td className="py-2 text-right text-green-400 print:text-black">R$ {commission.toFixed(2)}</td>
+                                                            <td className="py-1 text-right text-green-400 print:text-black print:text-xs">R$ {commission.toFixed(2)}</td>
                                                         </tr>
                                                     );
                                                 })}
